@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>FELIX · CRM, PRM e BRM de Valor · O que foi entendido da estratégia</title>
+<link rel="stylesheet" href="fonts/local-fonts.css">
+<style>
+:root{
+  --bordo:#5E1E3A; --bordo-900:#490B2C; --ouro:#EFB810; --ouro-700:#C2900A;
+  --tinta:#1D1D1B; --rosa:#F8F1F5; --linha:#E9DCE3; --cinza:#707070; --cinza-claro:#9A9A9A;
+}
+@page{ size:A4; margin:0; }
+*{ box-sizing:border-box; margin:0; padding:0; }
+html,body{ background:#fff; color:var(--tinta); font-family:'Montserrat',sans-serif; font-size:8.6pt; line-height:1.46; }
+.page{ width:210mm; height:297mm; padding:12.5mm 17mm 12mm 17mm; position:relative; overflow:hidden; page-break-after:always; }
+.page:last-child{ page-break-after:auto; }
+
+/* topo */
+.topo{ display:flex; align-items:center; justify-content:space-between; padding-bottom:4mm; border-bottom:1.2px solid var(--bordo); }
+.topo img{ height:10.5mm; width:auto; display:block; }
+.topo .meta{ text-align:right; font-size:6.4pt; letter-spacing:2.2px; text-transform:uppercase; color:var(--cinza); line-height:1.85; }
+.topo .meta b{ color:var(--bordo); font-weight:700; }
+.topo.slim{ padding-bottom:3mm; }
+.topo.slim img{ height:8mm; }
+
+/* cabeçalho */
+.kicker{ margin-top:5mm; font-family:'Oswald',sans-serif; font-weight:500; font-size:7.2pt; letter-spacing:3px; text-transform:uppercase; color:var(--ouro-700); }
+h1{ margin-top:1.8mm; font-family:'Oswald',sans-serif; font-weight:700; font-size:25pt; line-height:1.08; letter-spacing:.3px; text-transform:uppercase; color:var(--bordo); }
+.lede{ margin-top:2.4mm; font-size:9.3pt; line-height:1.5; color:#3a3a38; max-width:170mm; }
+
+/* kpis */
+.kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:5mm; margin-top:4.5mm; }
+.kpi{ border-top:3px solid var(--bordo); padding-top:2.2mm; }
+.kpi.ouro{ border-top-color:var(--ouro); }
+.kpi .v{ font-family:'Oswald',sans-serif; font-weight:600; font-size:17pt; line-height:1.05; color:var(--bordo); }
+.kpi .v small{ font-size:9.5pt; font-weight:500; color:var(--cinza); margin-left:1px; }
+.kpi .r{ margin-top:1.3mm; font-size:6.2pt; letter-spacing:2.2px; text-transform:uppercase; color:var(--cinza); }
+.kpi .n{ margin-top:1.2mm; font-size:7.2pt; line-height:1.4; color:var(--cinza); }
+
+/* blocos */
+.bloco{ margin-bottom:3.4mm; }
+.bt{ display:flex; align-items:baseline; gap:2.6mm; font-family:'Oswald',sans-serif; font-weight:600; font-size:10.8pt; letter-spacing:1.4px; text-transform:uppercase; color:var(--bordo); padding-bottom:1.5mm; border-bottom:1px solid var(--linha); margin-bottom:2.2mm; }
+.bt span{ font-size:7.6pt; letter-spacing:2px; color:var(--ouro-700); font-weight:500; }
+.cols{ display:grid; grid-template-columns:1fr 1fr; column-gap:9mm; }
+.lista{ list-style:none; }
+.lista li{ position:relative; padding-left:4.6mm; margin-bottom:1.6mm; }
+.lista li::before{ content:"›"; position:absolute; left:0.6mm; top:-0.3mm; color:var(--ouro-700); font-weight:700; font-size:10.5pt; line-height:1.2; }
+.lista li b{ font-weight:700; }
+
+/* família de produtos */
+.familia{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:4mm; }
+.prod{ border:1px solid var(--linha); border-top:3px solid var(--bordo); padding:2.4mm 3mm 2.6mm; }
+.prod.ouro{ border-top-color:var(--ouro); }
+.prod .nome{ font-family:'Oswald',sans-serif; font-weight:600; font-size:11.2pt; letter-spacing:1px; text-transform:uppercase; color:var(--bordo); line-height:1.1; }
+.prod .nome em{ font-style:normal; color:var(--ouro-700); }
+.prod .sub{ font-size:6.2pt; letter-spacing:2px; text-transform:uppercase; color:var(--cinza); margin-top:.9mm; }
+.prod .desc{ font-size:7.8pt; line-height:1.42; color:#3a3a38; margin-top:1.6mm; }
+.nota{ margin-top:2.4mm; font-size:8.2pt; color:#3a3a38; }
+
+/* régua e tabela */
+.regua{ display:grid; grid-template-columns:repeat(9,1fr); gap:1mm; margin:.8mm 0 2mm; }
+.regua div{ font-family:'Oswald',sans-serif; font-weight:500; font-size:6.2pt; letter-spacing:.4px; text-transform:uppercase; text-align:center; padding:1.4mm .6mm; border:1px solid var(--linha); color:var(--cinza); line-height:1.15; }
+.regua div b{ display:block; font-size:8.2pt; font-weight:600; letter-spacing:0; color:var(--bordo); margin-bottom:.3mm; }
+.regua div.c{ background:var(--bordo); border-color:var(--bordo); color:#fff; }
+.regua div.c b{ color:var(--ouro); }
+.regua div.g{ background:var(--rosa); }
+.legenda{ font-size:6.8pt; color:var(--cinza); margin-bottom:2mm; }
+.legenda i{ display:inline-block; width:2.7mm; height:2.7mm; vertical-align:-0.4mm; margin:0 1mm 0 2.5mm; }
+table.fases{ width:100%; border-collapse:collapse; font-size:7.3pt; line-height:1.28; }
+table.fases th{ font-family:'Oswald',sans-serif; font-weight:600; font-size:6.7pt; letter-spacing:1.6px; text-transform:uppercase; color:var(--bordo); background:var(--rosa); text-align:left; padding:1.3mm 2mm; border-bottom:1.5px solid var(--ouro); }
+table.fases td{ padding:.75mm 2mm; border-bottom:1px solid var(--linha); vertical-align:top; }
+table.fases td.f{ font-family:'Oswald',sans-serif; font-weight:500; font-size:7.9pt; color:var(--bordo); white-space:nowrap; }
+table.fases td.f i{ font-style:normal; color:var(--ouro-700); margin-right:1.2mm; font-size:7pt; letter-spacing:1px; }
+table.fases tr:nth-child(even) td{ background:#FCF9FA; }
+
+/* fecho */
+.fecho{ margin-top:1mm; background:var(--rosa); border-left:3px solid var(--bordo); padding:3.2mm 5.5mm 3.4mm; }
+.fecho .rot{ font-size:6.4pt; letter-spacing:2.4px; text-transform:uppercase; color:var(--bordo); margin-bottom:1.3mm; }
+.fecho p{ font-size:8.5pt; line-height:1.46; color:#2b2b29; }
+.fecho p + p{ margin-top:1.3mm; }
+
+/* rodapé */
+.rodape{ position:absolute; left:17mm; right:17mm; bottom:8.5mm; display:flex; justify-content:space-between; align-items:center; padding-top:2.2mm; border-top:1px solid var(--linha); font-size:6.1pt; letter-spacing:1.8px; text-transform:uppercase; color:var(--cinza-claro); white-space:nowrap; background:#fff; }
+.rodape .dir{ font-family:'Oswald',sans-serif; font-weight:500; letter-spacing:2.6px; color:var(--cinza); }
+</style>
+</head>
+<body>
+
+<!-- ================= PÁGINA 1 ================= -->
+<section class="page">
+  <div class="topo">
+    <img src="assets/felix-lockup-bordo-h.png" alt="">
+    <div class="meta">
+      Relatório curto de entendimento<br>
+      <b>CRM · PRM · BRM de Valor</b> · 21 de setembro de 2026<br>
+      Documento de trabalho interno
+    </div>
+  </div>
+
+  <div class="kicker">Gestão Contínua · A plataforma do Negócio de Valor</div>
+  <h1>O que foi entendido da estratégia</h1>
+  <p class="lede">Síntese, em duas páginas, do pedido de Hamilton Felix depois das três definições de 21 de setembro: a família de produtos passa a se chamar CRM, PRM e BRM de Valor; o conselheiro entra no ciclo na Conexão de Valor e conduz a relação até a renovação; e a versão white label nasce como entregável do programa Negócios de Valor, com todo o aprendizado e sem os dados da Felix.</p>
+
+  <div class="kpis">
+    <div class="kpi"><div class="v">3 <small>produtos</small></div><div class="r">Uma plataforma</div><div class="n">CRM, PRM e BRM de Valor: um login, três visões e um só banco de dados.</div></div>
+    <div class="kpi ouro"><div class="v">8 <small>etapas</small></div><div class="r">Um funil</div><div class="n">O ciclo do Negócios de Valor é o funil, com Base de Leads antes e Arquivo depois.</div></div>
+    <div class="kpi"><div class="v">Etapa 3</div><div class="r">Entrada do conselheiro</div><div class="n">Da Conexão de Valor até a Parceria de Crescimento, ele conduz a relação.</div></div>
+    <div class="kpi ouro"><div class="v">1º <small>inquilino</small></div><div class="r">Felix Empresarial</div><div class="n">Foco inicial no uso da casa. O white label sai do mesmo código, sem os dados dela.</div></div>
+  </div>
+
+  <div class="bloco" style="margin-top:5mm;">
+    <div class="bt"><span>01</span>A família de Valor</div>
+    <div class="familia">
+      <div class="prod"><div class="nome">CRM <em>de Valor</em></div><div class="sub">Comercial · contas e negócios</div><div class="desc">Base de Leads, as sete etapas do método e o Arquivo. Contas com muitas pessoas, negócios em paralelo, artefato como critério de saída, forecast por artefato e higiene de pipeline.</div></div>
+      <div class="prod ouro"><div class="nome">PRM <em>de Valor</em></div><div class="sub">Parceiros · indicação e canal</div><div class="desc">O parceiro registra a oportunidade, acompanha aprovação, prazos e a própria comissão, recebe materiais e treinamento. Nunca vê margem, comissão de terceiros nem atas.</div></div>
+      <div class="prod"><div class="nome">BRM <em>de Valor</em></div><div class="sub">Board Relationship Management · entrega</div><div class="desc">Tudo o que a Felix entrega depois da assinatura: reuniões de conselho, atas, deliberações, pendências, NPS, Histórico de Valor e os encontros e entregáveis de todos os programas.</div></div>
+    </div>
+    <p class="nota">Gestão Contínua volta a ser o que é no método: a etapa transversal, o motor de registro, higiene, cobertura e forecast que atravessa os três produtos.</p>
+  </div>
+
+  <div class="cols">
+    <div class="bloco">
+      <div class="bt"><span>02</span>A jornada do conselheiro no ciclo</div>
+      <ul class="lista">
+        <li><b>Onde entra.</b> Na Conexão de Valor: o próprio conselheiro faz a pré-venda consultiva, com o diagnóstico e o Plano de Trabalho co-construído com o empresário. No método, ele acumula o papel de Pré-vendas na etapa 3 e o de Gerente de Projetos da etapa 5 em diante.</li>
+        <li><b>Até onde vai.</b> Até o fim: Confirmação de Compromisso ao lado do Gerente de Contas, kick-off, cadência, monitoria, crises, NPS e Renovação do Valor.</li>
+        <li><b>O que o sistema passa a ter.</b> Papéis por negócio e por etapa, e não só um dono de conta: Gerente de Contas, Conselheiro, Assessor executivo e Parceiro, com a passagem de bastão da etapa 2 para a 3 registrada.</li>
+        <li><b>A visão dele.</b> Minhas contas como conselheiro: agenda, pendências, entregáveis devidos, NPS e renovações a caminho.</li>
+      </ul>
+    </div>
+    <div class="bloco">
+      <div class="bt"><span>03</span>BRM de Valor: o registro do que é entregue</div>
+      <ul class="lista">
+        <li><b>Conselho dedicado.</b> Reuniões, pautas antecipadas, atas no padrão de sete seções que o Leandro já usa, deliberações com dono e prazo, pendências que reaparecem até fechar, transcrições, NPS e Histórico de Valor.</li>
+        <li><b>Conselho compartilhado.</b> Turmas de até oito empresários, calendário de 48 reuniões, materiais e o resumo semanal de cada membro.</li>
+        <li><b>Negócios de Valor.</b> Turmas dedicadas a uma empresa ou compartilhadas entre várias: 12 encontros, presença, artefatos por participante, índice INV e certificação contra evidência.</li>
+        <li><b>Demais programas.</b> Mentoria, Liderança, Gestão e Executivo de Valor no mesmo modelo: Programa, Turma, Encontro, Participante e Entregável. O que o assessor executivo produz fora do sistema passa a nascer dentro dele.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="rodape">
+    <div>21/09/2026 · Uso interno · Página 1 de 2</div>
+    <div class="dir">FELIX EMPRESARIAL</div>
+  </div>
+</section>
+
+<!-- ================= PÁGINA 2 ================= -->
+<section class="page">
+  <div class="topo slim">
+    <img src="assets/felix-lockup-bordo-h.png" alt="">
+    <div class="meta"><b>CRM · PRM · BRM de Valor</b> · O que foi entendido da estratégia</div>
+  </div>
+
+  <div class="bloco" style="margin-top:4.5mm;">
+    <div class="bt"><span>04</span>Quem conduz cada etapa e o que fica registrado</div>
+    <div class="regua">
+      <div><b>0</b>Base de Leads</div>
+      <div><b>1</b>Seleção Estratégica</div>
+      <div><b>2</b>Exploração Profunda</div>
+      <div class="c"><b>3</b>Conexão de Valor</div>
+      <div class="g"><b>4</b>Confirmação de Compromisso</div>
+      <div class="c"><b>5</b>Execução de Excelência</div>
+      <div class="c"><b>6</b>Cultivo de Valor</div>
+      <div class="c"><b>7</b>Parceria de Crescimento</div>
+      <div><b>8</b>Arquivo</div>
+    </div>
+    <div class="legenda"><i style="background:var(--bordo)"></i>conduzida pelo conselheiro <i style="background:var(--rosa);border:1px solid var(--linha)"></i>em dupla com o Gerente de Contas <i style="background:#fff;border:1px solid var(--linha)"></i>comercial ou sistema</div>
+    <table class="fases">
+      <tr><th style="width:38mm">Etapa</th><th style="width:44mm">Quem conduz</th><th>O que o sistema registra</th></tr>
+      <tr><td class="f"><i>0</i>Base de Leads</td><td>Gerente de Contas ou Parceiro</td><td>origem, evento ou campanha, quem trouxe, score de oportunidade, qualificação</td></tr>
+      <tr><td class="f"><i>1</i>Seleção Estratégica</td><td>Gerente de Contas</td><td>Plano de Conta em 8 blocos, tier, prioridade, hipótese de valor, contatos e papéis</td></tr>
+      <tr><td class="f"><i>2</i>Exploração Profunda</td><td>Gerente de Contas, conselheiro acompanha</td><td>Plano de Negócio validado por escrito, próximo passo com data e nome do cliente</td></tr>
+      <tr><td class="f"><i>3</i>Conexão de Valor</td><td>Conselheiro, como pré-venda consultiva</td><td>diagnóstico, reunião de valor, Plano de Trabalho co-construído, oferta do portfólio</td></tr>
+      <tr><td class="f"><i>4</i>Confirmação de Compromisso</td><td>Gerente de Contas com o conselheiro</td><td>proposta, objeções, Contrato de Valor nos níveis N1, N2 ou N3, validade e data da decisão</td></tr>
+      <tr><td class="f"><i>5</i>Execução de Excelência</td><td>Conselheiro e assessor executivo</td><td>contrato assinado, kick-off interno e externo, cadência, pasta do cliente, turma criada</td></tr>
+      <tr><td class="f"><i>6</i>Cultivo de Valor</td><td>Conselheiro e assessor executivo, no BRM</td><td>atas, deliberações, pendências, encontros, entregáveis, NPS, Histórico de Valor</td></tr>
+      <tr><td class="f"><i>7</i>Parceria de Crescimento</td><td>Conselheiro com o Gerente de Contas</td><td>proposta de crescimento, renovação antecipada, resultado</td></tr>
+      <tr><td class="f"><i>8</i>Arquivo</td><td>Sistema, com motivo declarado</td><td>concluído, vencido, cancelado, perdido ou sem decisão, e as lições aprendidas</td></tr>
+    </table>
+  </div>
+
+  <div class="cols">
+    <div class="bloco">
+      <div class="bt"><span>05</span>White label como entregável do método</div>
+      <ul class="lista">
+        <li><b>O que é.</b> Ao implantar o Negócios de Valor numa empresa, a etapa 8 vira produto: o cliente recebe o CRM de Valor já configurado com as oito etapas, os artefatos, o forecast por artefato, os rituais da Gestão Contínua e o acompanhamento da própria turma.</li>
+        <li><b>O que vai e o que não vai.</b> Vai o aprendizado: configuração, templates, pautas, automações, painéis e ferramentas. Não vai nada da Felix: contas, contatos, contratos, valores, atas e histórico ficam no inquilino da casa. Isso exige um pacote de configuração exportável desde o primeiro dia.</li>
+        <li><b>Consequência técnica.</b> Multi-inquilino desde o primeiro commit, com módulos por inquilino: a Felix usa CRM, PRM e BRM; o cliente do programa recebe o CRM, o PRM se tiver canal e o BRM só se tiver conselho.</li>
+      </ul>
+    </div>
+    <div class="bloco">
+      <div class="bt"><span>06</span>O que ainda preciso saber nesta rodada</div>
+      <ul class="lista">
+        <li><b>Conselheiro associado.</b> Quem vem do banco de conselheiros entra como perfil interno ou como parceiro no PRM? A remuneração dele fica no sistema?</li>
+        <li><b>Turmas compartilhadas.</b> O participante é contato de uma conta cliente ou pessoa física com conta própria? O contrato é por participante ou por turma?</li>
+        <li><b>Assessor executivo.</b> Registra atas e entregáveis de todas as contas ou só das atribuídas a ele? Quem aprova a ata antes do envio?</li>
+        <li><b>Portal do cliente.</b> O sócio do cliente de conselho vê atas aprovadas, pendências dele e NPS já na primeira versão ou na segunda?</li>
+        <li><b>White label na prática.</b> A Felix hospeda e cobra assinatura, ou entrega o pacote para o cliente hospedar? A marca na tela é do cliente, com a assinatura Negócios de Valor, ou é a da Felix?</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="fecho">
+    <div class="rot">Para constar</div>
+    <p>Com a aprovação deste entendimento, o prompt mestre muda em quatro pontos: os nomes CRM, PRM e BRM de Valor; o conselheiro entra na Conexão de Valor e conduz a relação até a renovação, com papéis registrados por etapa; o BRM registra tudo o que a casa entrega, com Programa, Turma, Encontro, Participante e Entregável; e o white label é entregável do Negócios de Valor, com pacote de configuração exportável e nenhum dado da Felix. O restante do documento de 18/09 continua válido, e o BRM sobe para a segunda entrega.</p>
+  </div>
+
+  <div class="rodape">
+    <div>21/09/2026 · Uso interno · Página 2 de 2</div>
+    <div class="dir">FELIX EMPRESARIAL</div>
+  </div>
+</section>
+
+</body>
+</html>
