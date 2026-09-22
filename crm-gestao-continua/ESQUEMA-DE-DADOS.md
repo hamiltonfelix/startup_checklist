@@ -205,13 +205,37 @@ O catálogo do inquilino.
 | contrato_id, competencia, vencimento, valor **C**, nota_fiscal **C**, status, pago_em, observacao | fk, texto, data, numérico, texto, enum, data, texto |
 
 ### comissoes
+Serve ao vendedor interno e ao parceiro, com a mesma regra.
 
 | Campo | Tipo | Nota |
 |---|---|---|
-| parceiro_id, negocio_id, contrato_id, parcela_id | fk | |
-| percentual, valor | numérico | visível ao parceiro dono, nunca a outro parceiro |
+| beneficiario_tipo | enum | vendedor_interno, parceiro, conselheiro |
+| usuario_id, parceiro_id | fk | um dos dois, conforme o tipo |
+| negocio_id, contrato_id, parcela_id | fk | |
+| valor_bruto **C** | numérico | o valor da parcela |
+| imposto_percentual, imposto_valor **C** | numérico | padrão de 15%, editável por contrato |
+| base_calculo **C** | numérico | valor bruto menos imposto |
+| percentual | numérico | padrão de 10% para vendedor e para parceiro |
+| valor **C** | numérico | base vezes percentual |
+| percentual_efetivo_sobre_bruto | numérico calculado | 8,5% no padrão, para o relatório do dono bater com o do vendedor |
 | status | enum | prevista, apurada, paga |
 | data, observacao | data, texto | |
+
+Regra de visibilidade: cada um vê só a própria linha. O financeiro e o administrador veem todas. Quando há vendedor e parceiro no mesmo negócio, nascem duas linhas, cada uma com 10% sobre a mesma base.
+
+### percentuais_padrao
+Onde a regra vive, para trocar sem mexer em código.
+
+| Campo | Tipo | Nota |
+|---|---|---|
+| escopo | enum | inquilino, oferta, contrato, pessoa |
+| escopo_id | uuid | nulo quando o escopo é o inquilino |
+| imposto_percentual | numérico | 15 por padrão |
+| comissao_vendedor_percentual | numérico | 10 por padrão |
+| comissao_parceiro_percentual | numérico | 10 por padrão |
+| vigencia_inicio, vigencia_fim | data | o histórico fica, nada é sobrescrito |
+
+O cálculo procura o percentual na ordem pessoa, contrato, oferta, inquilino, e usa o primeiro que encontrar vigente.
 
 ---
 

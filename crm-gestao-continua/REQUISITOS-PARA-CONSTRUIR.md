@@ -1,6 +1,16 @@
 # Requisitos para construir · CRM, PRM e BRM de Valor
 
-Versão 1.0 · 21/09/2026. O que eu preciso de Hamilton Felix para entregar a plataforma funcionando para os colaboradores da Felix, para os parceiros externos e para os conselheiros, com o gerenciamento dos conselhos.
+Versão 1.1 · 22/09/2026. O que eu preciso de Hamilton Felix para entregar a plataforma funcionando para os colaboradores da Felix, para os parceiros externos e para os conselheiros, com o gerenciamento dos conselhos.
+
+> **Respondido em 22/09/2026.** Os blocos B, C, D e E estão fechados. As respostas e as premissas que eu completei a partir dos materiais da casa estão em `CATALOGO-E-REGRAS.md`, que passa a ser a fonte de verdade desses três blocos.
+>
+> | Bloco | Situação |
+> |---|---|
+> | **B, pessoas** | fechado. Só `hamiltonfelix@gmail.com` como administrador master no lançamento. Os demais entram por uma tela de gestão de usuários dentro da plataforma, que por isso sobe na Entrega 1 |
+> | **C, regras** | fechado. Vendedor interno 10% e parceiro 10%, os dois sobre o valor menos 15% de imposto médio. O resto foi deduzido dos materiais e está marcado como premissa |
+> | **D, catálogo** | fechado. Sete programas de Valor e sete serviços fora dos programas, com estrutura oficial e níveis de contrato |
+> | **E, conselho** | fechado. Ata de sete seções, pendências que reaparecem, banco de pautas dos 15 temas, NPS trimestral, nota do conselheiro semestral |
+> | **A, acessos** | **é o único que continua aberto**, e só trava a publicação. Detalhe no fim deste documento |
 
 Como responder: por número, uma linha cada. Onde houver opção, basta a letra. Onde eu já tiver proposto um padrão, "ok" confirma.
 
