@@ -847,9 +847,39 @@ alter table valor.pendencias            enable row level security;
 -- Nenhuma tabela deste arquivo recebe política de remoção. Sem política, o delete
 -- não passa pela segurança de linha. O gatilho sem_remocao fecha o resto.
 
--- O modelo de ata é material da casa. O parceiro não participa do rito.
+-- O perfil participante é a pessoa do cliente que ocupa cadeira na turma. Ele não
+-- é do time da casa: não escreve nada do rito e só lê o que é da turma dele.
+-- Sem este predicado, toda política que dizia apenas "não é parceiro" passaria a
+-- entregar o material interno da casa ao primeiro empresário que fizesse login.
+-- Não lê tabela nenhuma, então nunca pode causar recursão em política.
+create or replace function valor.gov_time_da_casa() returns boolean
+language sql stable as $$
+  select not valor.eh_parceiro() and valor.perfil_atual() <> 'participante';
+$$;
+
+comment on function valor.gov_time_da_casa() is
+  'Verdadeiro para quem é do time da casa. Falso para o parceiro e para o participante, que são gente de fora do rito.';
+
+-- Diz se a ata de origem de uma pendência é restrita, sem passar pela segurança
+-- de linha da própria ata. É security definer de propósito: se lesse a ata pela
+-- visão do leitor, a ata restrita ficaria invisível, o exists daria falso e a
+-- pendência vazaria justamente no caso que queremos barrar.
+-- Não há recursão: esta função lê valor.atas e é usada só na política de
+-- valor.pendencias, nunca numa política de valor.atas.
+create or replace function valor.gov_ata_restrita(alvo uuid) returns boolean
+language sql stable security definer set search_path = valor, public as $$
+  select coalesce((select a.restrita from valor.atas a where a.id = alvo), false);
+$$;
+
+comment on function valor.gov_ata_restrita(uuid) is
+  'Se a ata de origem é restrita. Usada para impedir que a pendência nascida de reunião sobre pessoas do cliente chegue a quem só ocupa cadeira.';
+
+-- ------------------------------------------------- material interno da casa
+-- Modelo de ata, escolha por cliente, banco de pautas e itens de pauta são
+-- preparação interna. Nem parceiro nem participante alcançam.
+
 create policy modelo_ata_le on valor.modelos_ata for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
 create policy modelo_ata_insere on valor.modelos_ata for insert
   with check (valor.do_inquilino(inquilino_id) and valor.eh_admin());
 create policy modelo_ata_atualiza on valor.modelos_ata for update
@@ -857,7 +887,7 @@ create policy modelo_ata_atualiza on valor.modelos_ata for update
   with check (valor.do_inquilino(inquilino_id) and valor.eh_admin());
 
 create policy modelo_conta_le on valor.modelos_ata_por_conta for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
 create policy modelo_conta_insere on valor.modelos_ata_por_conta for insert
   with check (valor.do_inquilino(inquilino_id) and valor.ve_confidencial());
 create policy modelo_conta_atualiza on valor.modelos_ata_por_conta for update
@@ -865,31 +895,46 @@ create policy modelo_conta_atualiza on valor.modelos_ata_por_conta for update
   with check (valor.do_inquilino(inquilino_id) and valor.ve_confidencial());
 
 create policy banco_pauta_le on valor.banco_pautas for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
 create policy banco_pauta_insere on valor.banco_pautas for insert
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
 create policy banco_pauta_atualiza on valor.banco_pautas for update
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
+
+-- O item de pauta carrega origem, vínculo com pendência e responsável interno.
+-- É a cozinha da reunião, e não tem turma_id para ancorar, então fecha por perfil.
+create policy pauta_item_le on valor.pautas_itens for select
+  using (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
+create policy pauta_item_insere on valor.pautas_itens for insert
+  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
+create policy pauta_item_atualiza on valor.pautas_itens for update
+  using (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
+
+-- ------------------------------------------------- o rito, ancorado na turma
+-- O participante lê a pauta, a ata e as pendências da turma dele, e nada mais.
+-- Quem não tem turma na linha é material sem cadeira, e aí só o time da casa lê.
 
 create policy pauta_le on valor.pautas for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (
+    valor.do_inquilino(inquilino_id)
+    and not valor.eh_parceiro()
+    and (
+      valor.gov_time_da_casa()
+      or (turma_id is not null and valor.brm_turma_visivel(turma_id))
+    )
+  );
 create policy pauta_insere on valor.pautas for insert
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
 create policy pauta_atualiza on valor.pautas for update
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
 
-create policy pauta_item_le on valor.pautas_itens for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
-create policy pauta_item_insere on valor.pautas_itens for insert
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
-create policy pauta_item_atualiza on valor.pautas_itens for update
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
-
--- A ata nunca chega ao parceiro. A ata restrita, além disso, só é lida por quem
--- vê confidencial e por quem escreveu ou aprovou aquela ata.
+-- A ata nunca chega ao parceiro. A ata restrita só é lida por quem vê
+-- confidencial e por quem escreveu ou aprovou aquela ata. O participante lê a
+-- ata não restrita da turma dele, que é o direito de quem ocupa cadeira, e a
+-- cláusula de brm_so_participante espelha o que a 0008 faz em encontro_le.
 create policy ata_le on valor.atas for select
   using (
     valor.do_inquilino(inquilino_id)
@@ -900,13 +945,18 @@ create policy ata_le on valor.atas for select
       or valor.usuario_atual() = escrita_por
       or valor.usuario_atual() = aprovada_por
     )
+    and (not restrita or not valor.brm_so_participante(turma_id))
+    and (
+      valor.gov_time_da_casa()
+      or (turma_id is not null and valor.brm_turma_visivel(turma_id) and not restrita)
+    )
   );
 create policy ata_insere on valor.atas for insert
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
 create policy ata_atualiza on valor.atas for update
   using (
     valor.do_inquilino(inquilino_id)
-    and not valor.eh_parceiro()
+    and valor.gov_time_da_casa()
     and (
       not restrita
       or valor.ve_confidencial()
@@ -914,13 +964,24 @@ create policy ata_atualiza on valor.atas for update
       or valor.usuario_atual() = aprovada_por
     )
   )
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
 
--- A pendência é do rito interno e do cliente, nunca do parceiro.
+-- A pendência é do rito interno e do cliente, nunca do parceiro. O participante
+-- vê o que ficou em aberto na turma dele, menos o que nasceu de ata restrita.
 create policy pendencia_le on valor.pendencias for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (
+    valor.do_inquilino(inquilino_id)
+    and not valor.eh_parceiro()
+    and (not valor.brm_so_participante(turma_id) or not valor.gov_ata_restrita(ata_id))
+    and (
+      valor.gov_time_da_casa()
+      or (turma_id is not null
+          and valor.brm_turma_visivel(turma_id)
+          and not valor.gov_ata_restrita(ata_id))
+    )
+  );
 create policy pendencia_insere on valor.pendencias for insert
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
 create policy pendencia_atualiza on valor.pendencias for update
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
