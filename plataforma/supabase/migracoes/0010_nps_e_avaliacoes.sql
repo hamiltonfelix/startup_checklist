@@ -649,10 +649,16 @@ create policy avaliacao_conselheiro_le on valor.avaliacoes_conselheiro for selec
       or (liberada_para_avaliado and valor.usuario_atual() = conselheiro_usuario_id)
     )
   );
+-- Quem avalia o conselheiro e socio do cliente, entao esta porta precisa abrir
+-- para gente de fora. Mas abrir por negacao deixava qualquer pessoa do inquilino
+-- gravar avaliacao sobre qualquer conselheiro, inclusive um participante que
+-- nunca foi convidado a avaliar. A porta agora nomeia quem pode: o time da casa,
+-- ou o participante que esteja identificado como avaliador.
 create policy avaliacao_conselheiro_insere on valor.avaliacoes_conselheiro for insert
   with check (
     valor.do_inquilino(inquilino_id)
-    and not valor.eh_parceiro()
+    and ( valor.time_da_casa()
+          or (valor.eh_participante() and avaliador_contato_id is not null) )
     and valor.usuario_atual() is distinct from conselheiro_usuario_id
   );
 create policy avaliacao_conselheiro_atualiza on valor.avaliacoes_conselheiro for update

@@ -311,6 +311,16 @@ create policy artefato_escreve on valor.artefatos for all
 create policy interacao_le on valor.interacoes for select
   using (valor.do_inquilino(inquilino_id) and not restrita and valor.time_da_casa()
          or valor.do_inquilino(inquilino_id) and restrita and valor.ve_confidencial());
-create policy interacao_escreve on valor.interacoes for all
-  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa())
+-- A escrita vem separada em inserir e atualizar, e não como uma política `for
+-- all`. O motivo é que no PostgreSQL a cláusula `using` de uma política `for
+-- all` também vale para o select, e as políticas permissivas se somam. Enquanto
+-- esta era `for all`, o `using` dela devolvia a interação restrita para todo o
+-- time da casa e anulava o recorte de interacao_le: o conselheiro de fora da
+-- conta lia a conversa reservada. Com `for insert` e `for update` a leitura
+-- passa a sair só de interacao_le, que é onde a regra está escrita.
+create policy interacao_insere on valor.interacoes for insert
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
+create policy interacao_atualiza on valor.interacoes for update
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa()
+         and (not restrita or valor.ve_confidencial()))
   with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
