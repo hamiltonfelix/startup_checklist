@@ -927,22 +927,23 @@ alter table valor.automacoes           enable row level security;
 alter table valor.execucoes_automacao  enable row level security;
 
 create policy regra_le on valor.regras_alerta for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy regra_escreve on valor.regras_alerta for all
   using (valor.do_inquilino(inquilino_id) and valor.eh_admin())
   with check (valor.do_inquilino(inquilino_id) and valor.eh_admin());
 
--- O alerta é da casa. O parceiro não recebe cobrança interna.
+-- O alerta é da casa. Nem o parceiro nem o participante recebem cobrança
+-- interna, e por isso nenhum dos dois pode carimbar alerta como lido.
 create policy alerta_le on valor.alertas for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy alerta_carimba on valor.alertas for update
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy alerta_grava on valor.alertas for insert
   with check (valor.do_inquilino(inquilino_id) and valor.eh_admin());
 
 create policy automacao_le on valor.automacoes for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy automacao_escreve on valor.automacoes for all
   using (valor.do_inquilino(inquilino_id) and valor.eh_admin())
   with check (valor.do_inquilino(inquilino_id) and valor.eh_admin());

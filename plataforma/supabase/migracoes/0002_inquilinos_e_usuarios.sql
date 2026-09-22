@@ -87,10 +87,11 @@ alter table valor.configuracoes enable row level security;
 create policy inquilino_proprio on valor.inquilinos
   for select using (id = valor.inquilino_atual());
 
--- Todo mundo do inquilino enxerga a lista de colegas, com nome e perfil.
--- O parceiro não: ele não precisa conhecer o time por dentro.
+-- O time da casa enxerga a lista de colegas, com nome e perfil. Gente de fora
+-- não: nem o parceiro, que só indica negócio, nem o participante, que ocupa
+-- cadeira numa turma. Nenhum dos dois precisa conhecer o time por dentro.
 create policy usuario_le on valor.usuarios for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 
 create policy usuario_escreve on valor.usuarios for all
   using (valor.do_inquilino(inquilino_id) and valor.eh_admin())

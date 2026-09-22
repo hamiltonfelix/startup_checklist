@@ -77,11 +77,14 @@ $$;
 
 alter table valor.historico_fases enable row level security;
 
+-- O histórico de fases é medida interna de funil: quanto tempo cada negócio
+-- ficou em cada etapa. É leitura e escrita do time da casa. Gente de fora não
+-- entra, nem o parceiro que indicou o negócio, nem o participante da turma.
 create policy historico_fases_le on valor.historico_fases for select
-  using (inquilino_id = valor.inquilino_atual() and not valor.eh_parceiro());
+  using (inquilino_id = valor.inquilino_atual() and valor.time_da_casa());
 create policy historico_fases_escreve on valor.historico_fases for all
-  using (inquilino_id = valor.inquilino_atual() and not valor.eh_parceiro())
-  with check (inquilino_id = valor.inquilino_atual() and not valor.eh_parceiro());
+  using (inquilino_id = valor.inquilino_atual() and valor.time_da_casa())
+  with check (inquilino_id = valor.inquilino_atual() and valor.time_da_casa());
 
 -- Pedido da frente de operação: a validade do Plano de Trabalho vivia dentro do
 -- jsonb e o alerta precisava adivinhar. Agora é coluna.

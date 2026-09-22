@@ -230,7 +230,9 @@ alter table valor.papeis_negocio enable row level security;
 alter table valor.artefatos  enable row level security;
 alter table valor.interacoes enable row level security;
 
--- O parceiro só alcança o negócio que ele indicou, e a conta desse negócio.
+-- O time da casa alcança o negócio. O parceiro alcança só o que ele indicou, e
+-- a conta desse negócio. Quem não é nem uma coisa nem outra, como o
+-- participante, não alcança nada daqui.
 -- Roda com os direitos do dono e com caminho de busca fixo. Sem isso, a
 -- politica de uma tabela que chama esta funcao entra em recursao infinita,
 -- porque a leitura interna dispara a propria politica outra vez.
@@ -240,7 +242,7 @@ language sql stable security definer set search_path = valor, pg_catalog as $$
     select 1 from valor.negocios n
     where n.id = alvo
       and n.inquilino_id = valor.inquilino_atual()
-      and ( not valor.eh_parceiro() or n.parceiro_id = valor.parceiro_atual() )
+      and ( valor.time_da_casa() or n.parceiro_id = valor.parceiro_atual() )
   );
 $$;
 
@@ -250,7 +252,7 @@ language sql stable security definer set search_path = valor, pg_catalog as $$
     select 1 from valor.contas c
     where c.id = alvo and c.inquilino_id = valor.inquilino_atual()
   ) and (
-    not valor.eh_parceiro() or exists (
+    valor.time_da_casa() or exists (
       select 1 from valor.negocios n
       where n.conta_id = alvo and n.parceiro_id = valor.parceiro_atual()
     )
@@ -264,49 +266,51 @@ create policy oferta_escreve on valor.ofertas for all
 
 create policy conta_le on valor.contas for select
   using (inquilino_id = valor.inquilino_atual()
-         and ( not valor.eh_parceiro()
+         and ( valor.time_da_casa()
                or exists (select 1 from valor.negocios n
                           where n.conta_id = contas.id
                             and n.inquilino_id = valor.inquilino_atual()
                             and n.parceiro_id = valor.parceiro_atual()) ));
 create policy conta_escreve on valor.contas for all
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 
--- O contato do cliente é da casa. O parceiro indica, não fica com a agenda.
+-- O contato do cliente é da casa. O parceiro indica, não fica com a agenda, e o
+-- participante está do lado do cliente, então também não fica.
 create policy contato_le on valor.contatos for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy contato_escreve on valor.contatos for all
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 
 create policy negocio_le on valor.negocios for select
   using (inquilino_id = valor.inquilino_atual()
-         and ( not valor.eh_parceiro() or parceiro_id = valor.parceiro_atual() ));
+         and ( valor.time_da_casa() or parceiro_id = valor.parceiro_atual() ));
 create policy negocio_escreve on valor.negocios for all
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 
 create policy rota_publica_le on valor.negocios_rota_publica for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy rota_publica_escreve on valor.negocios_rota_publica for all
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 
 create policy papel_le on valor.papeis_negocio for select using (valor.negocio_visivel(negocio_id));
 create policy papel_escreve on valor.papeis_negocio for all
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 
 create policy artefato_le on valor.artefatos for select using (valor.negocio_visivel(negocio_id));
 create policy artefato_escreve on valor.artefatos for all
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 
--- Interação restrita nunca chega ao parceiro, e nem ao conselheiro de fora da conta.
+-- A interação é registro comercial da casa, e gente de fora não a lê. A
+-- restrita ainda estreita: nem o conselheiro de fora da conta chega nela.
 create policy interacao_le on valor.interacoes for select
-  using (valor.do_inquilino(inquilino_id) and not restrita and not valor.eh_parceiro()
+  using (valor.do_inquilino(inquilino_id) and not restrita and valor.time_da_casa()
          or valor.do_inquilino(inquilino_id) and restrita and valor.ve_confidencial());
 create policy interacao_escreve on valor.interacoes for all
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());

@@ -545,8 +545,15 @@ comment on view valor.vw_concentracao is
 -- Quantidade, valor e mediana de dias em cada uma das nove fases. A mediana é o
 -- que faz o alarme de negócio parado deixar de ser 30 dias fixos: com amostra
 -- bastante, o limite sugerido passa a ser duas vezes a mediana da fase.
--- Enquanto valor.historico_fases não existir, valor.limite_dias_parado devolve o
--- piso, e as duas colunas aparecem lado a lado para a diferença ficar visível.
+--
+-- Duas colunas de limite aparecem lado a lado, de propósito:
+--   limite_vigente_dias  o que valor.limite_dias_parado devolve hoje, lendo a
+--                        tabela valor.historico_fases, que nasce depois desta
+--                        migração e por isso é alcançada pela função, não por
+--                        junção. Sem amostra bastante lá, ele fica no piso.
+--   limite_sugerido_dias o mesmo cálculo feito aqui sobre o tempo de fase que
+--                        os próprios negócios mostram. Serve de conferência
+--                        enquanto o histórico ainda está sendo preenchido.
 create view valor.vw_funil_por_fase
 with (security_invoker = true, security_barrier = true) as
 with fases(fase) as (

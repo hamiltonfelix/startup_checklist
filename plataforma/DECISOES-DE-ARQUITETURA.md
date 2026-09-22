@@ -43,3 +43,27 @@ Três listas não estão escritas em nenhum arquivo do repositório. O construto
 | O enunciado das 10 questões de NPS | a pergunta clássica mais os sete blocos exigidos | os modelos de NPS que estão no Drive |
 
 As **sete seções oficiais da ata** não estão nesta lista: essas estão exatas, conforme o padrão em uso desde setembro de 2026.
+
+---
+
+## 5. O white label vaza calado pela cor, não pela palavra
+
+**O achado.** O curador de catálogo descobriu que `valor.semear_gtd`, na migração 0011, pinta as colunas do quadro Kanban com a paleta da Felix escrita dentro do código: `#5E1E3A`, `#C2900A`, `#C58A00`, `#1D1D1B`, `#2E7D4F` e `#707070`.
+
+**Por que isso é sério.** Num inquilino white label, isso é a identidade visual da Felix aparecendo no sistema de outra empresa. E vaza em silêncio, porque ninguém lê hexadecimal numa revisão de texto. A varredura de marca só pegou porque ela procura também pelas dez cores da casa, e não apenas por palavras.
+
+**O contorno que existe hoje.** `valor.neutralizar_identidade` repinta as colunas logo depois da semeadura, então o resultado final está limpo e o teste prova isso.
+
+**A correção de fundo, ainda pendente.** A coluna deve ler `identidade.cores` de `valor.configuracoes` em vez de trazer a cor escrita. Enquanto isso não acontecer, qualquer semeadura nova que esqueça de chamar a neutralização volta a vazar.
+
+**A lição que fica para a fábrica.** Identidade visual não é decoração, é dado de inquilino. Nenhuma migração escreve cor, fonte ou nome de marca dentro do código. Tudo isso vive em configuração, e a varredura de marca precisa procurar por cor, e não só por palavra.
+
+---
+
+## 6. Meta em branco é indisponível, nunca zero
+
+**A regra.** As quatro chaves de meta nascem vazias de propósito. Quem lê meta **não pode** usar função de leitura com valor padrão, porque ela devolveria o padrão e inventaria uma meta que ninguém definiu.
+
+**O que fazer.** Ler a chave direto e tratar `jsonb_typeof(valor) = 'null'` como indisponível. O painel mostra cobertura como indisponível, e não um número errado.
+
+**O motivo.** Um número errado numa tela de decisão é pior do que a ausência do número. Quem vê "indisponível" vai atrás. Quem vê um número falso decide em cima dele.

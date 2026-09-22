@@ -643,7 +643,16 @@ alter table valor.turmas        enable row level security;
 alter table valor.turmas_contas enable row level security;
 alter table valor.participantes enable row level security;
 
--- O parceiro nunca enxerga nada de BRM. A negativa abre toda política de leitura.
+-- O parceiro nunca enxerga nada de BRM. Aqui, e só aqui, a leitura abre com a
+-- negativa `not valor.eh_parceiro()` em vez de `valor.time_da_casa()`, e é de
+-- propósito: logo em seguida vem sempre um predicado positivo que ancora o
+-- acesso, `brm_programa_visivel`, `brm_turma_visivel` ou a própria linha do
+-- usuário. É esse predicado que deixa o participante do cliente entrar na turma
+-- dele, que é o portal que a casa prometeu. Quem copiar esta forma para uma
+-- tabela sem âncora abre a porta para todo perfil novo do enum, que foi
+-- exatamente o defeito corrigido nas demais migrações.
+-- Escrita é outra história: toda política de escrita deste arquivo passa por
+-- `valor.brm_pode_escrever()`, que é lista de quem pode, e não negação.
 
 create policy programa_le on valor.programas for select
   using (valor.do_inquilino(inquilino_id)

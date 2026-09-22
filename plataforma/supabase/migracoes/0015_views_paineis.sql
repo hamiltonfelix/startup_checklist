@@ -502,25 +502,28 @@ select
   a.prioridade,
   a.prazo,
   a.agendada_para,
-  case when a.prazo is not null and a.prazo < current_date
-       then current_date - a.prazo end       as dias_de_atraso,
-  case when a.prazo is null                    then 'sem_prazo'
-       when a.prazo < current_date             then 'vencida'
-       when a.prazo = current_date             then 'vence_hoje'
-       when a.prazo <= current_date + 7        then 'vence_na_semana'
-       else                                        'no_prazo'
+  -- Sem prazo, quem manda é a data agendada: o compromisso marcado para ontem
+  -- também está vencido.
+  d.data_referencia,
+  case when d.data_referencia is not null and d.data_referencia < current_date
+       then current_date - d.data_referencia end  as dias_de_atraso,
+  case when d.data_referencia is null              then 'sem_prazo'
+       when d.data_referencia < current_date       then 'vencida'
+       when d.data_referencia = current_date       then 'vence_hoje'
+       when d.data_referencia <= current_date + 7  then 'vence_na_semana'
+       else                                            'no_prazo'
   end                                        as situacao,
-  case when a.prazo is null                    then 'Sem prazo definido'
-       when a.prazo < current_date             then 'Vencida'
-       when a.prazo = current_date             then 'Vence hoje'
-       when a.prazo <= current_date + 7        then 'Vence nesta semana'
-       else                                        'No prazo'
+  case when d.data_referencia is null              then 'Sem prazo definido'
+       when d.data_referencia < current_date       then 'Vencida'
+       when d.data_referencia = current_date       then 'Vence hoje'
+       when d.data_referencia <= current_date + 7  then 'Vence nesta semana'
+       else                                            'No prazo'
   end                                        as situacao_rotulo,
-  case when a.prazo is not null and a.prazo < current_date  then 1
-       when a.prazo = current_date                          then 2
-       when a.prazo is not null and a.prazo <= current_date + 7 then 3
-       when a.prazo is not null                             then 4
-       else                                                      5
+  case when d.data_referencia is null                   then 5
+       when d.data_referencia < current_date            then 1
+       when d.data_referencia = current_date            then 2
+       when d.data_referencia <= current_date + 7       then 3
+       else                                                  4
   end                                        as ordem,
   a.delegado_para_id,
   a.delegado_para_externo,
@@ -540,6 +543,9 @@ left join valor.usuarios u     on u.id = coalesce(a.responsavel_id, a.criado_por
 left join valor.contextos_gtd g on g.id = a.contexto_id
 left join valor.contas c        on c.id = a.conta_id
 left join valor.negocios n      on n.id = a.negocio_id
+cross join lateral (
+  select coalesce(a.prazo, a.agendada_para::date) as data_referencia
+) d
 where a.arquivado_em is null
   and a.estado not in ('concluida', 'cancelada');
 

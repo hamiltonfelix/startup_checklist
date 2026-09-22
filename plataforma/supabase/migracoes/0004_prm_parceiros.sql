@@ -314,11 +314,12 @@ language sql stable as $$
   select valor.perfil_atual() in ('admin_master', 'emergencia', 'lider', 'comercial', 'financeiro')
 $$;
 
--- O parceiro enxerga apenas o próprio cadastro. Jamais outro parceiro.
+-- O parceiro enxerga apenas o próprio cadastro. Jamais outro parceiro, e quem
+-- não é da casa nem é parceiro, como o participante, não enxerga cadastro algum.
 create policy parceiro_le on valor.parceiros for select
   using (
     valor.do_inquilino(inquilino_id)
-    and (not valor.eh_parceiro() or id = valor.parceiro_atual())
+    and (valor.time_da_casa() or id = valor.parceiro_atual())
   );
 
 create policy parceiro_insere on valor.parceiros for insert
@@ -332,7 +333,7 @@ create policy parceiro_atualiza on valor.parceiros for update
 create policy parceiro_usuario_le on valor.parceiros_usuarios for select
   using (
     valor.do_inquilino(inquilino_id)
-    and (not valor.eh_parceiro() or parceiro_id = valor.parceiro_atual())
+    and (valor.time_da_casa() or parceiro_id = valor.parceiro_atual())
   );
 
 create policy parceiro_usuario_insere on valor.parceiros_usuarios for insert
@@ -342,11 +343,12 @@ create policy parceiro_usuario_atualiza on valor.parceiros_usuarios for update
   using (valor.do_inquilino(inquilino_id) and valor.gerencia_parceiros())
   with check (valor.do_inquilino(inquilino_id) and valor.gerencia_parceiros());
 
--- O parceiro enxerga apenas as próprias indicações. Jamais a de outro parceiro.
+-- O parceiro enxerga apenas as próprias indicações. Jamais a de outro parceiro,
+-- e o participante não enxerga indicação nenhuma.
 create policy indicacao_le on valor.indicacoes for select
   using (
     valor.do_inquilino(inquilino_id)
-    and (not valor.eh_parceiro() or parceiro_id = valor.parceiro_atual())
+    and (valor.time_da_casa() or parceiro_id = valor.parceiro_atual())
   );
 
 -- O parceiro registra a indicação em nome próprio, e ela nasce apenas como
@@ -356,7 +358,7 @@ create policy indicacao_insere on valor.indicacoes for insert
     valor.do_inquilino(inquilino_id)
     and (
       (valor.eh_parceiro() and parceiro_id = valor.parceiro_atual() and status = 'registrada')
-      or (not valor.eh_parceiro() and valor.gerencia_parceiros())
+      or (valor.time_da_casa() and valor.gerencia_parceiros())
     )
   );
 
@@ -365,13 +367,13 @@ create policy indicacao_atualiza on valor.indicacoes for update
     valor.do_inquilino(inquilino_id)
     and (
       (valor.eh_parceiro() and parceiro_id = valor.parceiro_atual() and status = 'registrada')
-      or (not valor.eh_parceiro() and valor.gerencia_parceiros())
+      or (valor.time_da_casa() and valor.gerencia_parceiros())
     )
   )
   with check (
     valor.do_inquilino(inquilino_id)
     and (
       (valor.eh_parceiro() and parceiro_id = valor.parceiro_atual() and status = 'registrada')
-      or (not valor.eh_parceiro() and valor.gerencia_parceiros())
+      or (valor.time_da_casa() and valor.gerencia_parceiros())
     )
   );

@@ -285,7 +285,7 @@ alter table valor.contratos_conselheiros enable row level security;
 -- falso, então não abre nenhuma linha de dado para quem a chama.
 create or replace function valor.contrato_visivel(alvo uuid) returns boolean
 language sql stable security definer set search_path = valor, pg_temp as $$
-  select not valor.eh_parceiro() and exists (
+  select valor.time_da_casa() and exists (
     select 1
       from valor.contratos c
      where c.id = alvo
@@ -312,7 +312,7 @@ language sql stable security definer set search_path = valor, pg_temp as $$
 $$;
 
 comment on function valor.contrato_visivel(uuid) is
-  'Primeiro filtro de contrato e de parcela. O parceiro sai fora sempre. O conselheiro entra só nas contas dele.';
+  'Primeiro filtro de contrato e de parcela. Só o time da casa entra, então parceiro e participante saem fora sempre. O conselheiro entra só nas contas dele.';
 
 create policy contrato_le on valor.contratos for select
   using (valor.contrato_visivel(id));
@@ -320,19 +320,19 @@ create policy contrato_le on valor.contratos for select
 create policy contrato_insere on valor.contratos for insert
   with check (
     valor.do_inquilino(inquilino_id)
-    and not valor.eh_parceiro()
+    and valor.time_da_casa()
     and (valor.ve_confidencial() or valor.perfil_atual() in ('comercial', 'gerente_contas'))
   );
 
 create policy contrato_atualiza on valor.contratos for update
   using (
     valor.do_inquilino(inquilino_id)
-    and not valor.eh_parceiro()
+    and valor.time_da_casa()
     and (valor.ve_confidencial() or valor.perfil_atual() in ('comercial', 'gerente_contas'))
   )
   with check (
     valor.do_inquilino(inquilino_id)
-    and not valor.eh_parceiro()
+    and valor.time_da_casa()
     and (valor.ve_confidencial() or valor.perfil_atual() in ('comercial', 'gerente_contas'))
   );
 
@@ -351,7 +351,7 @@ create policy parcela_atualiza on valor.parcelas for update
 create policy conselheiro_remuneracao_le on valor.contratos_conselheiros for select
   using (
     valor.do_inquilino(inquilino_id)
-    and not valor.eh_parceiro()
+    and valor.time_da_casa()
     and (valor.ve_confidencial() or usuario_id = valor.usuario_atual())
   );
 

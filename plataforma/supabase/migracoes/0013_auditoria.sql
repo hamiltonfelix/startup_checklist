@@ -237,8 +237,10 @@ reset client_min_messages;
 
 alter table valor.auditoria enable row level security;
 
--- Quem lê a trilha inteira do inquilino é o administrador. Todo mundo enxerga
--- apenas a própria pegada, e nada mais. O parceiro não alcança a trilha.
+-- Quem lê a trilha inteira do inquilino é o administrador. O restante do time
+-- da casa enxerga apenas a própria pegada, e nada mais. Gente de fora não
+-- alcança a trilha de jeito nenhum, nem o parceiro nem o participante, porque a
+-- pegada revela o que a casa fez com o dado do cliente.
 -- Não existe política de escrita: a única porta de entrada é o gatilho
 -- valor.auditar, que roda como dono da tabela. E os gatilhos de imutabilidade
 -- barram atualização, remoção e esvaziamento até para quem é dono.
@@ -247,6 +249,6 @@ create policy auditoria_le_admin on valor.auditoria for select
 
 create policy auditoria_le_propria_pegada on valor.auditoria for select
   using (valor.do_inquilino(inquilino_id)
-         and not valor.eh_parceiro()
+         and valor.time_da_casa()
          and usuario_id is not null
          and usuario_id = valor.usuario_atual());

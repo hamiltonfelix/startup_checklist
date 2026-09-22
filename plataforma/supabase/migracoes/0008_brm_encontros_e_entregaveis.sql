@@ -465,9 +465,14 @@ alter table valor.itens_ritual_semanal enable row level security;
 alter table valor.entregaveis          enable row level security;
 alter table valor.historico_valor      enable row level security;
 
--- O parceiro nunca enxerga nada de BRM. A negativa abre toda política.
+-- O parceiro nunca enxerga nada de BRM. A leitura abre com a negativa
+-- `not valor.eh_parceiro()` porque logo depois vem o predicado positivo que
+-- ancora o acesso, como faz a 0007. Sem essa âncora a negativa seria o defeito,
+-- e não a regra.
 -- O participante do cliente só alcança a própria turma, e nela não vê encontro
 -- restrito nem entregável que não esteja marcado como visível ao cliente.
+-- Toda escrita deste arquivo passa por `valor.brm_pode_escrever()`, que nomeia
+-- quem pode, então nenhum perfil novo do enum entra aqui por omissão.
 
 create policy encontro_le on valor.encontros for select
   using (valor.do_inquilino(inquilino_id)

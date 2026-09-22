@@ -579,7 +579,7 @@ alter table valor.percentuais_padrao enable row level security;
 alter table valor.comissoes          enable row level security;
 
 create policy percentual_le on valor.percentuais_padrao for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 
 create policy percentual_insere on valor.percentuais_padrao for insert
   with check (valor.do_inquilino(inquilino_id) and valor.ve_confidencial());
@@ -590,7 +590,9 @@ create policy percentual_atualiza on valor.percentuais_padrao for update
 
 -- Cada um enxerga a própria linha e só ela. O vendedor nunca vê a do parceiro,
 -- o parceiro nunca vê a do vendedor, e o conselheiro vê apenas a própria
--- remuneração. Líder, financeiro e administrador enxergam todas.
+-- remuneração. Líder, financeiro e administrador enxergam todas. O participante
+-- não é beneficiário de comissão nenhuma, e a cláusula de time da casa garante
+-- que ele não entre por um usuario_id que por acaso bata.
 create policy comissao_le on valor.comissoes for select
   using (
     valor.do_inquilino(inquilino_id)
@@ -600,7 +602,7 @@ create policy comissao_le on valor.comissoes for select
           and valor.eh_parceiro()
           and parceiro_id = valor.parceiro_atual())
       or (beneficiario_tipo in ('vendedor_interno', 'conselheiro')
-          and not valor.eh_parceiro()
+          and valor.time_da_casa()
           and usuario_id = valor.usuario_atual())
     )
   );

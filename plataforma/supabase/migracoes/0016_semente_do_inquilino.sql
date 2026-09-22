@@ -591,7 +591,9 @@ $funcao$;
 comment on function valor.criar_inquilino(text, text, text, text) is
 $doc$Cria o inquilino, semeia o catálogo e a configuração pelo perfil pedido, e cadastra um único usuário administrador master, cujo endereço chega por parâmetro. Nenhum endereço de e-mail fica escrito na migração. Idempotente: rodar de novo com o mesmo apelido devolve o mesmo inquilino e não cria um segundo administrador.
 
-A conta de emergência não nasce aqui. Ela é criada logo depois, pela tela de gestão de usuários, com múltiplo fator obrigatório e com os códigos de recuperação impressos e guardados fisicamente, fora de qualquer sistema. O endereço dessa conta é decidido na hora de publicar e nunca entra no repositório.$doc$;
+A conta de emergência não nasce aqui. Ela é criada logo depois, pela tela de gestão de usuários, com múltiplo fator obrigatório e com os códigos de recuperação impressos e guardados fisicamente, fora de qualquer sistema. O endereço dessa conta é decidido na hora de publicar e nunca entra no repositório.
+
+A função roda com os direitos de quem chama, e não com os do dono, de propósito. Abrir inquilino não é operação de usuário de aplicação: valor.inquilinos tem segurança de linha e nenhuma política de escrita, então quem chama por uma sessão comum é barrado pelo banco. Quem abre inquilino é o dono das tabelas, na carga inicial, ou a chave de serviço, na publicação.$doc$;
 
 -- ------------------------------------------------- a prova do white label limpo
 
@@ -674,9 +676,16 @@ create or replace function valor.vazamento_de_marca(
   trecho  text
 ) language plpgsql stable as $funcao$
 declare
-  r        record;
-  v_sem    text := '(' || array_to_string(coalesce(p_sem_caixa, valor.palavras_da_casa()), '|') || ')';
-  v_com    text := '(' || array_to_string(coalesce(p_com_caixa, valor.marcas_da_casa()), '|') || ')';
+  r      record;
+  l_sem  text[] := coalesce(p_sem_caixa, valor.palavras_da_casa());
+  l_com  text[] := coalesce(p_com_caixa, valor.marcas_da_casa());
+  -- Lista vazia vira nulo, e a passada correspondente nem roda. Sem isso a
+  -- alternância ficaria `()`, que casa com a linha inteira e faria a varredura
+  -- reprovar tudo, ou pior, aprovar tudo quando invertida.
+  v_sem  text := case when coalesce(array_length(l_sem, 1), 0) = 0
+                      then null else '(' || array_to_string(l_sem, '|') || ')' end;
+  v_com  text := case when coalesce(array_length(l_com, 1), 0) = 0
+                      then null else '(' || array_to_string(l_com, '|') || ')' end;
 begin
   for r in
     select c.relname::text as tabela,
@@ -697,24 +706,28 @@ begin
      order by 1, 2
   loop
     -- Passada sem caixa: `Felix`, `FELIX` e `felix` reprovam do mesmo jeito.
-    return query execute format(
-      'select %L::text, %L::text, %s, (regexp_match(x.%I::text, %L, ''i''))[1], left(x.%I::text, 160)
-         from valor.%I x
-        where x.inquilino_id = %L::uuid
-          and x.%I::text ~* %L',
-      r.tabela, r.coluna,
-      case when r.tem_id then 'x.id' else 'null::uuid' end,
-      r.coluna, v_sem, r.coluna, r.tabela, p_inquilino_id, r.coluna, v_sem);
+    if v_sem is not null then
+      return query execute format(
+        'select %L::text, %L::text, %s, (regexp_match(x.%I::text, %L, ''i''))[1], left(x.%I::text, 160)
+           from valor.%I x
+          where x.inquilino_id = %L::uuid
+            and x.%I::text ~* %L',
+        r.tabela, r.coluna,
+        case when r.tem_id then 'x.id' else 'null::uuid' end,
+        r.coluna, v_sem, r.coluna, r.tabela, p_inquilino_id, r.coluna, v_sem);
+    end if;
 
     -- Passada com caixa: separa a marca `Valor` da palavra comum `valor`.
-    return query execute format(
-      'select %L::text, %L::text, %s, (regexp_match(x.%I::text, %L))[1], left(x.%I::text, 160)
-         from valor.%I x
-        where x.inquilino_id = %L::uuid
-          and x.%I::text ~ %L',
-      r.tabela, r.coluna,
-      case when r.tem_id then 'x.id' else 'null::uuid' end,
-      r.coluna, v_com, r.coluna, r.tabela, p_inquilino_id, r.coluna, v_com);
+    if v_com is not null then
+      return query execute format(
+        'select %L::text, %L::text, %s, (regexp_match(x.%I::text, %L))[1], left(x.%I::text, 160)
+           from valor.%I x
+          where x.inquilino_id = %L::uuid
+            and x.%I::text ~ %L',
+        r.tabela, r.coluna,
+        case when r.tem_id then 'x.id' else 'null::uuid' end,
+        r.coluna, v_com, r.coluna, r.tabela, p_inquilino_id, r.coluna, v_com);
+    end if;
   end loop;
 end;
 $funcao$;

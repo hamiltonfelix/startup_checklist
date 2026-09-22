@@ -541,33 +541,34 @@ alter table valor.atividades             enable row level security;
 alter table valor.atividades_checklist   enable row level security;
 alter table valor.colunas_kanban         enable row level security;
 
--- O parceiro indica negócio. A agenda interna da casa não é dele.
+-- A agenda interna é do time da casa. O parceiro indica negócio e o
+-- participante ocupa cadeira numa turma; nenhum dos dois lê nem grava aqui.
 create policy contexto_le on valor.contextos_gtd for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy contexto_escreve on valor.contextos_gtd for all
   using (valor.do_inquilino(inquilino_id) and valor.eh_admin())
   with check (valor.do_inquilino(inquilino_id) and valor.eh_admin());
 
 create policy recorrencia_le on valor.atividades_recorrencia for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy recorrencia_escreve on valor.atividades_recorrencia for all
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 
 create policy atividade_le on valor.atividades for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy atividade_escreve on valor.atividades for all
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 
 create policy checklist_le on valor.atividades_checklist for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy checklist_escreve on valor.atividades_checklist for all
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
-  with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 
 create policy coluna_le on valor.colunas_kanban for select
-  using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy coluna_escreve on valor.colunas_kanban for all
   using (valor.do_inquilino(inquilino_id)
          and (valor.eh_admin() or (escopo = 'usuario' and usuario_id = valor.usuario_atual())))
