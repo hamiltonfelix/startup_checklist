@@ -1146,7 +1146,7 @@ const INTERACOES_EXEMPLO: LinhaInteracao[] = [
     canal: 'outro',
     ocorrida_em: momento(-8, 13),
     assunto: 'Esclarecimento sobre a minuta do edital',
-    resumo: 'Pedido de esclarecimento protocolado no portal, dentro do prazo do processo.',
+    resumo: 'Esclarecimento protocolado no portal, dentro do prazo do processo.',
     restrita: false,
     gerado_com_ia: false,
   },
@@ -2279,7 +2279,7 @@ function tabelaParaEscrita(nome: string): EscritaSimples {
   return abrir(nome)
 }
 
-export interface PedidoDeFase {
+export interface MudancaDeFase {
   negocio_id: Uuid
   fase: Fase
 }
@@ -2289,25 +2289,25 @@ export interface PedidoDeFase {
  * Com o banco ligado, grava. Sem banco, mexe só na cópia de tela, e a própria
  * tela avisa que a mudança não saiu do navegador.
  */
-export function useMoverNegocioDeFase(): UseMutationResult<PedidoDeFase, Error, PedidoDeFase> {
+export function useMoverNegocioDeFase(): UseMutationResult<MudancaDeFase, Error, MudancaDeFase> {
   const fila = useQueryClient()
 
-  return useMutation<PedidoDeFase, Error, PedidoDeFase>({
-    mutationFn: async (pedido) => {
-      if (!temBanco()) return pedido
+  return useMutation<MudancaDeFase, Error, MudancaDeFase>({
+    mutationFn: async (mudanca) => {
+      if (!temBanco()) return mudanca
       const { error } = await tabelaParaEscrita('negocios')
-        .update({ fase: pedido.fase, entrou_na_fase_em: HOJE_ISO })
-        .eq('id', pedido.negocio_id)
+        .update({ fase: mudanca.fase, entrou_na_fase_em: HOJE_ISO })
+        .eq('id', mudanca.negocio_id)
       if (error) throw new Error(error.message)
-      return pedido
+      return mudanca
     },
-    onSuccess: (pedido) => {
+    onSuccess: (mudanca) => {
       const chave = ['crm', 'negocios', fonte()]
       fila.setQueryData<RespostaCrm<PainelDeNegocios>>(chave, (anterior) => {
         if (!anterior) return anterior
         const negocios = anterior.dados.negocios.map((linha) =>
-          linha.negocio_id === pedido.negocio_id
-            ? { ...linha, fase: pedido.fase, exige_higiene: pedido.fase >= 1 && pedido.fase <= 4 }
+          linha.negocio_id === mudanca.negocio_id
+            ? { ...linha, fase: mudanca.fase, exige_higiene: mudanca.fase >= 1 && mudanca.fase <= 4 }
             : linha,
         )
         return { ...anterior, dados: { ...anterior.dados, negocios } }
@@ -2318,7 +2318,7 @@ export function useMoverNegocioDeFase(): UseMutationResult<PedidoDeFase, Error, 
 }
 
 /** Os campos de texto do negócio que a ficha deixa editar. */
-export interface PedidoDeCampos {
+export interface MudancaDeCampos {
   negocio_id: Uuid
   proximo_passo?: string | null
   proximo_passo_data?: string | null
@@ -2331,40 +2331,40 @@ export interface PedidoDeCampos {
  * O botão assistido nunca chama esta função sozinho: ele só escreve no campo
  * quando a pessoa aceita a sugestão, e gravar é outro clique, sempre dela.
  */
-export function useSalvarCamposDoNegocio(): UseMutationResult<PedidoDeCampos, Error, PedidoDeCampos> {
+export function useSalvarCamposDoNegocio(): UseMutationResult<MudancaDeCampos, Error, MudancaDeCampos> {
   const fila = useQueryClient()
 
-  return useMutation<PedidoDeCampos, Error, PedidoDeCampos>({
-    mutationFn: async (pedido) => {
-      if (!temBanco()) return pedido
+  return useMutation<MudancaDeCampos, Error, MudancaDeCampos>({
+    mutationFn: async (mudanca) => {
+      if (!temBanco()) return mudanca
 
       const remendo: Record<string, unknown> = {}
-      if (pedido.proximo_passo !== undefined) remendo.proximo_passo = pedido.proximo_passo
-      if (pedido.proximo_passo_data !== undefined) {
-        remendo.proximo_passo_data = pedido.proximo_passo_data
+      if (mudanca.proximo_passo !== undefined) remendo.proximo_passo = mudanca.proximo_passo
+      if (mudanca.proximo_passo_data !== undefined) {
+        remendo.proximo_passo_data = mudanca.proximo_passo_data
       }
-      if (pedido.descricao !== undefined) remendo.descricao = pedido.descricao
-      if (Object.keys(remendo).length === 0) return pedido
+      if (mudanca.descricao !== undefined) remendo.descricao = mudanca.descricao
+      if (Object.keys(remendo).length === 0) return mudanca
 
       const { error } = await tabelaParaEscrita('negocios')
         .update(remendo)
-        .eq('id', pedido.negocio_id)
+        .eq('id', mudanca.negocio_id)
       if (error) throw new Error(error.message)
-      return pedido
+      return mudanca
     },
-    onSuccess: (pedido) => {
+    onSuccess: (mudanca) => {
       const remendar = (linha: LinhaNegocioForecast): LinhaNegocioForecast => {
         const proximoPasso =
-          pedido.proximo_passo === undefined ? linha.proximo_passo : pedido.proximo_passo
+          mudanca.proximo_passo === undefined ? linha.proximo_passo : mudanca.proximo_passo
         const proximoPassoData =
-          pedido.proximo_passo_data === undefined
+          mudanca.proximo_passo_data === undefined
             ? linha.proximo_passo_data
-            : pedido.proximo_passo_data
+            : mudanca.proximo_passo_data
         return {
           ...linha,
           proximo_passo: proximoPasso,
           proximo_passo_data: proximoPassoData,
-          descricao: pedido.descricao === undefined ? linha.descricao : pedido.descricao,
+          descricao: mudanca.descricao === undefined ? linha.descricao : mudanca.descricao,
           tem_proximo_passo: Boolean(
             proximoPasso && proximoPassoData && proximoPassoData >= HOJE_ISO,
           ),
@@ -2372,7 +2372,7 @@ export function useSalvarCamposDoNegocio(): UseMutationResult<PedidoDeCampos, Er
       }
 
       fila.setQueryData<RespostaCrm<FichaDoNegocio>>(
-        ['crm', 'negocio', pedido.negocio_id, fonte()],
+        ['crm', 'negocio', mudanca.negocio_id, fonte()],
         (anterior) =>
           anterior
             ? { ...anterior, dados: { ...anterior.dados, negocio: remendar(anterior.dados.negocio) } }
@@ -2388,7 +2388,7 @@ export function useSalvarCamposDoNegocio(): UseMutationResult<PedidoDeCampos, Er
                 dados: {
                   ...anterior.dados,
                   negocios: anterior.dados.negocios.map((linha) =>
-                    linha.negocio_id === pedido.negocio_id ? remendar(linha) : linha,
+                    linha.negocio_id === mudanca.negocio_id ? remendar(linha) : linha,
                   ),
                 },
               }
@@ -2400,40 +2400,40 @@ export function useSalvarCamposDoNegocio(): UseMutationResult<PedidoDeCampos, Er
   })
 }
 
-export interface PedidoDeEstado {
+export interface MudancaDeEstado {
   atividade_id: Uuid
   estado: EstadoGtd
 }
 
 /** Move a atividade de coluna, ou seja, de estado do método GTD. */
-export function useMoverAtividade(): UseMutationResult<PedidoDeEstado, Error, PedidoDeEstado> {
+export function useMoverAtividade(): UseMutationResult<MudancaDeEstado, Error, MudancaDeEstado> {
   const fila = useQueryClient()
 
-  return useMutation<PedidoDeEstado, Error, PedidoDeEstado>({
-    mutationFn: async (pedido) => {
-      if (!temBanco()) return pedido
-      const remendo: Record<string, unknown> = { estado: pedido.estado }
-      if (pedido.estado === 'aguardando') remendo.aguardando_desde = HOJE_ISO
-      if (pedido.estado === 'concluida') remendo.concluida_em = new Date().toISOString()
+  return useMutation<MudancaDeEstado, Error, MudancaDeEstado>({
+    mutationFn: async (mudanca) => {
+      if (!temBanco()) return mudanca
+      const remendo: Record<string, unknown> = { estado: mudanca.estado }
+      if (mudanca.estado === 'aguardando') remendo.aguardando_desde = HOJE_ISO
+      if (mudanca.estado === 'concluida') remendo.concluida_em = new Date().toISOString()
       const { error } = await tabelaParaEscrita('atividades')
         .update(remendo)
-        .eq('id', pedido.atividade_id)
+        .eq('id', mudanca.atividade_id)
       if (error) throw new Error(error.message)
-      return pedido
+      return mudanca
     },
-    onSuccess: (pedido) => {
+    onSuccess: (mudanca) => {
       const chave = ['crm', 'atividades', fonte()]
       fila.setQueryData<RespostaCrm<QuadroDeAtividades>>(chave, (anterior) => {
         if (!anterior) return anterior
         const atividades = anterior.dados.atividades.map((linha) =>
-          linha.id === pedido.atividade_id
+          linha.id === mudanca.atividade_id
             ? {
                 ...linha,
-                estado: pedido.estado,
+                estado: mudanca.estado,
                 concluida_em:
-                  pedido.estado === 'concluida' ? new Date().toISOString() : linha.concluida_em,
+                  mudanca.estado === 'concluida' ? new Date().toISOString() : linha.concluida_em,
                 aguardando_desde:
-                  pedido.estado === 'aguardando' ? HOJE_ISO : linha.aguardando_desde,
+                  mudanca.estado === 'aguardando' ? HOJE_ISO : linha.aguardando_desde,
               }
             : linha,
         )

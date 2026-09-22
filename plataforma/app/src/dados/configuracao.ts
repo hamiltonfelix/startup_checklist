@@ -1103,10 +1103,9 @@ export function useRegrasEPrazos(): UseQueryResult<RespostaRegrasEPrazos, Error>
         regras: (regras ?? []).map((linha) => ({
           ...linha,
           mensagem: linha.descricao,
-          prazos_que_usa:
-            CATALOGO_DE_PRAZOS.filter((prazo) => prazo.regra === linha.codigo).map(
-              (prazo) => prazo.chave,
-            ) ?? [],
+          prazos_que_usa: CATALOGO_DE_PRAZOS.filter(
+            (prazo) => prazo.regra === linha.codigo,
+          ).map((prazo) => prazo.chave),
           alertas_abertos: 0,
         })),
         prazos,

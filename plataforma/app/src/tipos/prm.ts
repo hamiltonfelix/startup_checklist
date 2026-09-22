@@ -43,7 +43,7 @@ export type IndicacaoStatus =
  * Os três valores são copiados do banco sem tradução, porque é assim que eles
  * chegam na coluna `beneficiario_tipo`. Identificador de banco se escreve como
  * o banco escreve, em snake_case sem acento, conforme a seção 2 do contrato
- * técnico. O primeiro deles nomeia a pessoa da casa que fecha o negócio, e o
+ * técnico. O primeiro deles nomeia a pessoa da casa responsável pelo negócio, e o
  * rótulo de tela desse registro é Gerente de Contas, conforme a seção 3. A
  * ponte entre o identificador e o rótulo é o dicionário `ROTULO_BENEFICIARIO`,
  * no fim deste arquivo, e nenhuma tela mostra o identificador cru.

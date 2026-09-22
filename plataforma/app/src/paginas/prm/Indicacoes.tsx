@@ -15,11 +15,9 @@ import {
   type ColunaTabela,
   type TomEtiqueta,
 } from '@/componentes/indice'
-import { AVISO_SEM_BANCO } from '@/dados/cliente'
+import { AVISO_SEM_BANCO, temBanco } from '@/dados/cliente'
 import { useIndicacoes } from '@/dados/prm'
-import { temBanco } from '@/dados/cliente'
-import { data, inteiro, ROTULO_FASE } from '@/tipos/rotulos'
-import { dinheiro } from '@/tipos/rotulos'
+import { data, dinheiro, inteiro, ROTULO_FASE } from '@/tipos/rotulos'
 import {
   DIAS_ALARME_PROTECAO,
   ROTULO_SITUACAO_PROTECAO,

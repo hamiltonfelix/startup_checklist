@@ -13,8 +13,16 @@
  * entregando, e nada mais. Nenhuma linha daqui esconde dado.
  */
 
-import type { DataHora, ModalidadeOferta, NivelContrato, PerfilUsuario } from '@/tipos/dominio'
-import type { Criticidade, Data, PapelNegocio, Uuid } from '@/tipos/dominio'
+import type {
+  Criticidade,
+  Data,
+  DataHora,
+  ModalidadeOferta,
+  NivelContrato,
+  PapelNegocio,
+  PerfilUsuario,
+  Uuid,
+} from '@/tipos/dominio'
 
 /**
  * Os dez perfis do enum `valor.perfil_usuario`.
