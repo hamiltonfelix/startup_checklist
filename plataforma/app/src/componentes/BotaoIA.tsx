@@ -99,10 +99,10 @@ export function BotaoIA({
     return () => document.removeEventListener('mousedown', noClique)
   }, [estado, encerrar])
 
-  // Sair da tela com o pedido no ar cancela o pedido.
+  // Sair da tela com a consulta no ar cancela a consulta.
   useEffect(() => () => cancelador.current?.abort(), [])
 
-  async function pedir() {
+  async function consultar() {
     if (!emUso.disponivel) {
       setErro('O assistente não está disponível nesta máquina.')
       setEstado('erro')
@@ -169,13 +169,13 @@ export function BotaoIA({
             return
           }
           if (estado === 'pensando') return
-          void pedir()
+          void consultar()
         }}
         disabled={desabilitado}
         aria-busy={estado === 'pensando' || undefined}
         aria-expanded={estado === 'pronto' || estado === 'erro'}
         aria-controls={estado === 'pronto' || estado === 'erro' ? idCaixa : undefined}
-        title="Pedir uma sugestão de texto. Nada entra no campo sem você mandar."
+        title="Buscar uma sugestão de texto. Nada entra no campo sem você mandar."
       >
         {estado === 'pensando' ? (
           <span className="ia__giro" aria-hidden="true" />
@@ -294,7 +294,7 @@ export function BotaoIA({
           </div>
           <p className="ia__erro">{erro}</p>
           <div className="ia__sugestao-acoes">
-            <Botao tom="contorno" tamanho="p" onClick={() => void pedir()}>
+            <Botao tom="contorno" tamanho="p" onClick={() => void consultar()}>
               Tentar de novo
             </Botao>
           </div>

@@ -13,7 +13,7 @@
 import {
   ErroIA,
   type CampoAssistido,
-  type PedidoIA,
+  type SolicitacaoIA,
   type ServicoIA,
   type SugestaoIA,
 } from '@/ia/ServicoIA'
@@ -55,21 +55,21 @@ class ServicoIADeMentira implements ServicoIA {
     this.espera = espera
   }
 
-  sugerir(pedido: PedidoIA, sinal?: AbortSignal): Promise<SugestaoIA> {
+  sugerir(solicitacao: SolicitacaoIA, sinal?: AbortSignal): Promise<SugestaoIA> {
     return new Promise<SugestaoIA>((resolver, rejeitar) => {
       if (sinal?.aborted) {
-        rejeitar(new ErroIA('Pedido cancelado antes de começar.'))
+        rejeitar(new ErroIA('Sugestão cancelada antes de começar.'))
         return
       }
 
       const relogio = setTimeout(() => {
         sinal?.removeEventListener('abort', cancelar)
 
-        const base = TEXTO_FIXO[pedido.campo] ?? TEXTO_FIXO.texto_livre
-        const instrucao = pedido.instrucao?.trim()
+        const base = TEXTO_FIXO[solicitacao.campo] ?? TEXTO_FIXO.texto_livre
+        const instrucao = solicitacao.instrucao?.trim()
 
         resolver({
-          texto: instrucao ? `${base}\n\nAjuste pedido: ${instrucao}` : base,
+          texto: instrucao ? `${base}\n\nAjuste solicitado: ${instrucao}` : base,
           origem: this.nome,
           gerado_em: new Date().toISOString(),
           aviso: 'Sugestão de exemplo. Nenhum serviço externo foi chamado.',
@@ -78,7 +78,7 @@ class ServicoIADeMentira implements ServicoIA {
 
       const cancelar = () => {
         clearTimeout(relogio)
-        rejeitar(new ErroIA('Pedido cancelado.'))
+        rejeitar(new ErroIA('Sugestão cancelada.'))
       }
 
       sinal?.addEventListener('abort', cancelar, { once: true })

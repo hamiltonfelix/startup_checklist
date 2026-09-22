@@ -13,6 +13,9 @@
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
+/** Cliente preso ao esquema `valor`, que é onde todo o produto vive. */
+export type ClienteValor = SupabaseClient<never, 'valor'>
+
 const url = import.meta.env.VITE_SUPABASE_URL?.trim() ?? ''
 const chaveAnonima = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim() ?? ''
 
@@ -21,14 +24,14 @@ export function temBanco(): boolean {
   return url.length > 0 && chaveAnonima.length > 0
 }
 
-let instancia: SupabaseClient | null = null
+let instancia: ClienteValor | null = null
 
 /**
  * Devolve o cliente Supabase, ou `null` quando falta configuração.
  * Quem chama trata o nulo e mostra o aviso de banco desligado. Assim a tela
  * roda em qualquer máquina sem derrubar a aplicação inteira.
  */
-export function obterCliente(): SupabaseClient | null {
+export function obterCliente(): ClienteValor | null {
   if (!temBanco()) return null
   if (instancia) return instancia
 
@@ -56,7 +59,7 @@ export function obterCliente(): SupabaseClient | null {
  * Mesmo cliente, exigido. Use nas consultas que só rodam quando já se sabe
  * que o banco está ligado.
  */
-export function exigirCliente(): SupabaseClient {
+export function exigirCliente(): ClienteValor {
   const cliente = obterCliente()
   if (!cliente) {
     throw new Error(

@@ -19,7 +19,7 @@ export type CampoAssistido =
   | 'pauta_encontro'
   | 'texto_livre'
 
-export interface PedidoIA {
+export interface SolicitacaoIA {
   /** Qual campo está pedindo ajuda. */
   campo: CampoAssistido
   /** O que já está escrito, para a sugestão partir dali em vez do zero. */
@@ -54,7 +54,7 @@ export interface ServicoIA {
    * Pede uma sugestão. Pode ser cancelado pelo sinal, para o caso de a pessoa
    * fechar a caixa ou trocar de tela enquanto o serviço ainda pensa.
    */
-  sugerir(pedido: PedidoIA, sinal?: AbortSignal): Promise<SugestaoIA>
+  sugerir(solicitacao: SolicitacaoIA, sinal?: AbortSignal): Promise<SugestaoIA>
 }
 
 /** Erro previsto do serviço, já com texto pronto para a tela. */

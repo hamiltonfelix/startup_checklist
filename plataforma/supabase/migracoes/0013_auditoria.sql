@@ -17,7 +17,7 @@ create table valor.auditoria (
   mudancas     jsonb not null default '{}',
   usuario_id   uuid,
   perfil       text,
-  momento      timestamptz not null default now(),
+  momento      timestamptz not null default clock_timestamp(),
   origem       text
 );
 comment on table valor.auditoria is
@@ -26,6 +26,8 @@ comment on column valor.auditoria.mudancas is
   'Só as colunas que mudaram, cada uma com antes e depois. Coluna confidencial entra com marca de omissão no lugar do valor.';
 comment on column valor.auditoria.usuario_id is
   'Sem chave estrangeira de propósito: a trilha precisa sobreviver a qualquer estado do cadastro de usuários e nunca pode recusar uma gravação.';
+comment on column valor.auditoria.momento is
+  'O instante real da mudança, pelo relógio, e não o início da transação. É o que mantém a ordem certa quando várias mudanças cabem na mesma transação.';
 comment on column valor.auditoria.origem is
   'De onde veio a chamada: o parâmetro de sessão app.origem, ou o nome da aplicação conectada.';
 
@@ -220,10 +222,16 @@ $funcao$;
 comment on function valor.pendurar_auditoria(text, text) is
   'Pendura a trilha numa tabela: um gatilho que registra inserção e atualização, e outro que barra a remoção.';
 
-select valor.pendurar_auditoria('valor', 'negocios');
-select valor.pendurar_auditoria('valor', 'artefatos');
-select valor.pendurar_auditoria('valor', 'contas');
-select valor.pendurar_auditoria('valor', 'usuarios');
+set client_min_messages = warning;
+do $$
+begin
+  perform valor.pendurar_auditoria('valor', 'negocios');
+  perform valor.pendurar_auditoria('valor', 'artefatos');
+  perform valor.pendurar_auditoria('valor', 'contas');
+  perform valor.pendurar_auditoria('valor', 'usuarios');
+end;
+$$;
+reset client_min_messages;
 
 -- ------------------------------------------------------------- segurança
 

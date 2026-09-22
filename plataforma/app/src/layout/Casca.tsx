@@ -10,7 +10,7 @@ const CHAVE_RECOLHIDA = 'felix.lateral.recolhida'
  * A casca da aplicação: barra lateral, cabeçalho, área de conteúdo e rodapé.
  *
  * No computador a lateral fica fixa e pode recolher para só ícones. Abaixo de
- * 1024px ela vira gaveta, com cortina por trás e fechamento pelo Escape.
+ * 1024px ela vira gaveta, com cortina por trás, e o Escape a fecha.
  */
 export function Casca() {
   const local = useLocation()

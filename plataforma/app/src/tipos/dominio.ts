@@ -247,7 +247,7 @@ export interface Negocio extends DoInquilino, Carimbo {
   nivel_contrato: NivelContrato
   /** Leitura qualitativa do time. Nunca vira previsão de receita em tela. */
   probabilidade: Probabilidade | null
-  /** A data em que o cliente decide. Nunca chame de data de fechamento. */
+  /** A data em que o cliente decide. O nome desta data é este, e nenhum outro. */
   data_decisao_cliente: Data | null
   proximo_passo: string | null
   proximo_passo_data: Data | null

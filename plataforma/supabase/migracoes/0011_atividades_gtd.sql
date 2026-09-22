@@ -131,9 +131,9 @@ create table valor.atividades (
   -- preenchida. Nada de par genérico de tipo e identificador.
   conta_id             uuid references valor.contas(id),
   negocio_id           uuid references valor.negocios(id),
-  contrato_id          uuid,
-  encontro_id          uuid,
-  pendencia_id         uuid,
+  contrato_id          uuid references valor.contratos(id),
+  encontro_id          uuid references valor.encontros(id),
+  pendencia_id         uuid references valor.pendencias(id),
 
   recorrencia_id       uuid references valor.atividades_recorrencia(id),
   origem_atividade_id  uuid references valor.atividades(id),
@@ -171,11 +171,11 @@ comment on table valor.atividades is
 comment on column valor.atividades.estado is
   'Estado do método GTD. O Kanban desenha colunas sobre este estado, pelo mapeamento de valor.colunas_kanban.';
 comment on column valor.atividades.contrato_id is
-  'Sem chave estrangeira por enquanto: valor.contratos nasce em outra migração. O pedido está no relatório de entrega.';
+  'Vínculo com o contrato que originou a atividade. Chave estrangeira para valor.contratos, criada na migração 0005.';
 comment on column valor.atividades.encontro_id is
-  'Sem chave estrangeira por enquanto: valor.encontros nasce na migração do BRM de Valor.';
+  'Vínculo com o encontro que originou a atividade. Chave estrangeira para valor.encontros, criada na migração 0008.';
 comment on column valor.atividades.pendencia_id is
-  'Sem chave estrangeira por enquanto: valor.pendencias nasce na migração do BRM de Valor.';
+  'Vínculo com a pendência que originou a atividade. Chave estrangeira para valor.pendencias, criada na migração 0009.';
 comment on column valor.atividades.delegado_para_externo is
   'Nome de quem recebeu a delegação quando a pessoa é do cliente e não tem usuário na plataforma.';
 comment on column valor.atividades.aguardando_desde is

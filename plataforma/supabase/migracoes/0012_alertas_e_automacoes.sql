@@ -493,14 +493,15 @@ begin
     insert into valor.negocios
       (inquilino_id, conta_id, oferta_id, titulo, fase, origem, data_decisao_cliente, entrou_na_fase_em)
     select k.inquilino_id, k.conta_id, k.oferta_id,
-           'Renovação do contrato da conta ' || ct.nome,
-           7, 'base_instalada'::valor.origem_lead, k.fim, current_date
+           'Renovação do contrato ' || k.numero || ' da conta ' || ct.nome,
+           7, 'base_instalada'::valor.origem_lead, k.vigencia_fim, current_date
       from valor.contratos k
       join valor.contas ct on ct.id = k.conta_id
      where k.inquilino_id = $1
        and k.arquivado_em is null
-       and k.fim is not null
-       and k.fim between current_date and current_date + $2
+       and k.vigencia_fim is not null
+       and k.situacao in ('vigente', 'pausado')
+       and k.vigencia_fim between current_date and current_date + $2
        and not exists (
          select 1 from valor.negocios n
           where n.conta_id = k.conta_id
@@ -764,45 +765,51 @@ begin
    'contratos', 'sql', $sql$
     select c.inquilino_id,
            c.id as entidade_chave,
-           'Contrato da conta ' || ct.nome || ' vence em ' || (c.fim - current_date) || ' dias' as mensagem,
-           case when (c.fim - current_date)
+           'Contrato ' || c.numero || ' da conta ' || ct.nome
+             || ' vence em ' || (c.vigencia_fim - current_date) || ' dias' as mensagem,
+           case when (c.vigencia_fim - current_date)
                      <= valor.configuracao_num(c.inquilino_id, 'alerta.contrato_aviso_vermelho_dias', 30)::integer
                 then 'vermelho'::valor.criticidade
                 else 'amarelo'::valor.criticidade end as criticidade,
            jsonb_build_object(
              'conta_id', c.conta_id,
-             'fim', c.fim,
-             'dias_restantes', (c.fim - current_date)) as detalhe
+             'vigencia_fim', c.vigencia_fim,
+             'dias_restantes', (c.vigencia_fim - current_date)) as detalhe
       from valor.contratos c
       join valor.contas ct on ct.id = c.conta_id
      where c.arquivado_em is null
-       and c.fim is not null
-       and (c.fim - current_date)
+       and c.vigencia_fim is not null
+       and c.situacao in ('vigente', 'pausado')
+       and (c.vigencia_fim - current_date)
            between 0 and valor.configuracao_num(c.inquilino_id, 'alerta.contrato_aviso_amarelo_dias', 60)::integer
        and ($1::uuid is null or c.inquilino_id = $1::uuid)
    $sql$, array['valor.contratos'], 'amarelo', 'painel', 'lider', 40),
 
   (p_inquilino, 'ata_nao_enviada',
    'Ata não enviada',
-   'Reunião de conselho realizada e ata ainda não enviada além do prazo configurado.',
-   'reunioes_conselho', 'sql', $sql$
-    select r.inquilino_id,
-           r.id as entidade_chave,
-           'Ata não enviada ' || round(extract(epoch from (now() - e.data::timestamptz)) / 3600)
-             || ' horas depois da reunião' as mensagem,
+   'Reunião de conselho realizada e ata ainda não enviada além do prazo configurado. A ata restrita fica de fora, porque ela nunca é enviada.',
+   'atas', 'sql', $sql$
+    select a.inquilino_id,
+           a.id as entidade_chave,
+           'Ata da reunião de ' || to_char(a.data_reuniao, 'DD/MM/YYYY') || ' da conta ' || ct.nome
+             || ' não enviada dentro de ' || h.horas || ' horas' as mensagem,
            'amarelo'::valor.criticidade as criticidade,
            jsonb_build_object(
-             'encontro_id', r.encontro_id,
-             'ata_status', r.ata_status) as detalhe
-      from valor.reunioes_conselho r
-      join valor.encontros e on e.id = r.encontro_id
-     where r.arquivado_em is null
-       and r.ata_status is distinct from 'enviada'
-       and e.data is not null
-       and now() - e.data::timestamptz
-           > make_interval(hours => valor.configuracao_num(r.inquilino_id, 'alerta.ata_nao_enviada_horas', 24)::integer)
-       and ($1::uuid is null or r.inquilino_id = $1::uuid)
-   $sql$, array['valor.reunioes_conselho', 'valor.encontros'], 'amarelo', 'painel', 'assessor', 50),
+             'conta_id', a.conta_id,
+             'status', a.status,
+             'data_reuniao', a.data_reuniao,
+             'horas_de_prazo', h.horas) as detalhe
+      from valor.atas a
+      join valor.contas ct on ct.id = a.conta_id
+      cross join lateral (
+        select valor.configuracao_num(a.inquilino_id, 'alerta.ata_nao_enviada_horas', 24)::integer as horas
+      ) h
+     where a.arquivado_em is null
+       and a.status <> 'enviada'
+       and not a.restrita
+       and now() > a.data_reuniao::timestamptz + make_interval(hours => h.horas)
+       and ($1::uuid is null or a.inquilino_id = $1::uuid)
+   $sql$, array['valor.atas'], 'amarelo', 'painel', 'assessor', 50),
 
   (p_inquilino, 'higiene_quebrada',
    'Invariante de higiene quebrada',
