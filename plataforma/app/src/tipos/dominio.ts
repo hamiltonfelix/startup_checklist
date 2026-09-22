@@ -36,6 +36,7 @@ export type PerfilUsuario =
   | 'assessor'
   | 'financeiro'
   | 'parceiro'
+  | 'participante'
   | 'emergencia'
 
 export type PapelNegocio =

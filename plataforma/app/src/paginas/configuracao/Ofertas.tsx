@@ -129,7 +129,14 @@ export function Ofertas() {
       rotulo: 'Editar',
       alinhamento: 'acoes',
       conteudo: (oferta) => (
-        <Botao tom="contorno" tamanho="p" onClick={() => setEmEdicao(oferta)}>
+        <Botao
+          tom="contorno"
+          tamanho="p"
+          onClick={(evento) => {
+            evento.stopPropagation()
+            setEmEdicao(oferta)
+          }}
+        >
           Abrir
         </Botao>
       ),

@@ -762,7 +762,8 @@ function montarEncontrosDaTurma(turma: Turma): Encontro[] {
     // A remarcação do encontro 2 da turma compartilhada. A primeira tentativa
     // sai da disputa, mantém o número e guarda a data que estava marcada.
     if (turma.id === 'tu-cvc-a' && numero === 2) {
-      const adiada = maisDias(dataPrevista, 7)
+      // A remarcação cai fora da grade base, e não em cima da data seguinte.
+      const adiada = maisDias(dataPrevista, 3)
       encontros.push({
         ...base,
         status: 'remarcado',

@@ -26,6 +26,7 @@ import {
   ROTULO_SITUACAO_CONTRATO,
   situacaoDaConta,
   textoOuAusente,
+  type FichaDaConta,
   type LinhaAlertaAberto,
   type LinhaConta,
   type LinhaContato,
@@ -106,24 +107,16 @@ export function Conta() {
           rotulo="Seções da ficha da conta"
           ativa={aba}
           aoTrocar={setAba}
-          abas={montarAbas(ficha.conta, ficha)}
+          abas={montarAbas(ficha)}
         />
       ) : null}
     </>
   )
 }
 
-interface FichaCompleta {
-  conta: LinhaConta
-  contatos: LinhaContato[]
-  negocios: LinhaNegocioForecast[]
-  contratos: LinhaContratoEmCurso[]
-  interacoes: LinhaInteracao[]
-  saude: LinhaSaudeDaConta | null
-  alertas: LinhaAlertaAberto[]
-}
+function montarAbas(ficha: FichaDaConta): Aba[] {
+  const conta = ficha.conta
 
-function montarAbas(conta: LinhaConta, ficha: FichaCompleta): Aba[] {
   return [
     { chave: 'resumo', rotulo: 'Resumo', conteudo: <AbaResumo conta={conta} /> },
     {

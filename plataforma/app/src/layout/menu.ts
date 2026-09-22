@@ -66,6 +66,15 @@ const ENTREGA: PerfilUsuario[] = [
 /** Quem administra o inquilino. */
 const ADMINISTRACAO: PerfilUsuario[] = ['admin_master', 'emergencia']
 
+/**
+ * O participante e a pessoa do cliente que ocupa cadeira numa turma. Ele nao e
+ * da casa e nao e parceiro: alcanca a propria turma, os encontros dela, as atas
+ * nao restritas e o entregavel marcado como visivel ao cliente. Nada mais.
+ * Assim como no caso do parceiro, isto aqui e so navegacao. Quem recorta de
+ * verdade e a politica de linha no banco.
+ */
+const PARTICIPANTE: PerfilUsuario[] = ['participante']
+
 export const MENU: GrupoMenu[] = [
   {
     chave: 'crm',
@@ -164,7 +173,7 @@ export const MENU: GrupoMenu[] = [
         rotulo: 'Turmas',
         para: '/turmas',
         icone: '☷',
-        perfis: ENTREGA,
+        perfis: [...ENTREGA, ...PARTICIPANTE],
         prefixo: true,
       },
       {
@@ -172,7 +181,7 @@ export const MENU: GrupoMenu[] = [
         rotulo: 'Encontros',
         para: '/encontros',
         icone: '◔',
-        perfis: ENTREGA,
+        perfis: [...ENTREGA, ...PARTICIPANTE],
         prefixo: true,
       },
       {
@@ -180,7 +189,7 @@ export const MENU: GrupoMenu[] = [
         rotulo: 'Atas',
         para: '/atas',
         icone: '☰',
-        perfis: ENTREGA,
+        perfis: [...ENTREGA, ...PARTICIPANTE],
         prefixo: true,
         descricao: 'Ata restrita nunca sai da casa',
       },
@@ -189,7 +198,7 @@ export const MENU: GrupoMenu[] = [
         rotulo: 'Entregáveis',
         para: '/entregaveis',
         icone: '◧',
-        perfis: ENTREGA,
+        perfis: [...ENTREGA, ...PARTICIPANTE],
         prefixo: true,
       },
     ],
@@ -198,6 +207,15 @@ export const MENU: GrupoMenu[] = [
     chave: 'governanca',
     titulo: 'Governança',
     itens: [
+      {
+        chave: 'pautas',
+        rotulo: 'Pautas',
+        para: '/pautas',
+        icone: '☷',
+        perfis: [...ENTREGA, 'gerente_contas'],
+        descricao: 'A pauta da reuniao, com a pendencia aberta reaparecendo ate fechar.',
+        prefixo: true,
+      },
       {
         chave: 'pendencias',
         rotulo: 'Pendências',

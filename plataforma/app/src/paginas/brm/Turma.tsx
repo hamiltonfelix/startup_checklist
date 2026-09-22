@@ -439,9 +439,12 @@ function AbaCalendario({ ficha }: { ficha: FichaDaTurma }) {
     <>
       {temRecesso ? (
         <Alarme tom="informacao" titulo="Este calendário tem recesso" className="secao">
-          O conselho para de meados de dezembro a meados de janeiro. As datas saltam esse período,
-          e o salto aparece marcado na lista abaixo {saltos > 0 ? '' : 'sempre que acontecer '}
-          para ninguém confundir recesso com falha de registro.
+          O conselho para de meados de dezembro a meados de janeiro, e as datas saltam esse
+          período. O salto aparece marcado na lista abaixo, para ninguém confundir recesso com
+          falha de registro.{' '}
+          {saltos > 0
+            ? `Este calendário tem ${inteiro(saltos)} ${saltos === 1 ? 'salto de recesso' : 'saltos de recesso'}.`
+            : 'Este trecho do calendário ainda não atravessa o recesso.'}
         </Alarme>
       ) : null}
 

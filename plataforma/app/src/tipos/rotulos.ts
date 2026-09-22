@@ -91,6 +91,7 @@ export const ROTULO_PERFIL: Record<PerfilUsuario, string> = {
   assessor: 'Assessor executivo',
   financeiro: 'Financeiro',
   parceiro: 'Parceiro',
+  participante: 'Participante de turma',
   emergencia: 'Conta de emergência',
 }
 

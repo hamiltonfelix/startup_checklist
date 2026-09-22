@@ -29,6 +29,7 @@ import {
   ROTULO_TIPO_PARCEIRO,
   ROTULO_TIPO_PESSOA,
   type IndicacaoNaTela,
+  type Parceiro as FichaDoParceiro,
   type ParceiroStatus,
   type UsuarioDoParceiro,
 } from '@/tipos/prm'
@@ -271,9 +272,7 @@ function ResumoDoParceiro({
 
 // ------------------------------------------------------------- cadastro
 
-function Cadastro({ parceiro }: { parceiro: NonNullable<ReturnType<typeof useParceiro>['data']>['parceiro'] }) {
-  if (!parceiro) return null
-
+function Cadastro({ parceiro }: { parceiro: FichaDoParceiro }) {
   const linhas: Array<{ rotulo: string; valor: string }> = [
     { rotulo: 'Nome', valor: parceiro.nome },
     { rotulo: 'Razão social', valor: parceiro.razao_social ?? 'não informada' },

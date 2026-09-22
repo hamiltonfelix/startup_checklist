@@ -270,7 +270,7 @@ function Cadeiras({ turma }: { turma: TurmaNaLista }) {
   const noTeto = turma.cadeiras_ocupadas >= turma.cadeiras_maximas
 
   return (
-    <div style={{ display: 'grid', gap: 'var(--esp-1)', justifyItems: 'end' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--esp-1)' }}>
       <span>
         <span className="numero">{inteiro(turma.cadeiras_ocupadas)}</span>{' '}
         <span className="texto-fraco">

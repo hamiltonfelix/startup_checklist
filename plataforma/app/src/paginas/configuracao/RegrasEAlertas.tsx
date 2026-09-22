@@ -237,7 +237,14 @@ function ListaDeRegras({
       rotulo: 'Editar',
       alinhamento: 'acoes',
       conteudo: (regra) => (
-        <Botao tom="contorno" tamanho="p" onClick={() => aoEditar(regra)}>
+        <Botao
+          tom="contorno"
+          tamanho="p"
+          onClick={(evento) => {
+            evento.stopPropagation()
+            aoEditar(regra)
+          }}
+        >
           Abrir
         </Botao>
       ),
