@@ -767,6 +767,7 @@ select set_config('app.perfil',     'gerente_contas', true) as ignorado;
 select titulo, fase_rotulo, categoria, valor_considerado, dias_ate_decisao,
        decide_esta_semana, esta_parado, na_higiene, grupo_rotulo
 from valor.vw_painel_gerente_contas
+where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001'
 order by ordem_grupo, valor_considerado desc;
 
 select set_config('app.usuario_id', 'bbbbbbbb-0000-4000-8000-000000000013', true) as ignorado;
@@ -778,7 +779,7 @@ select turma_nome, contas_da_turma, participantes_ativos,
        encontros_realizados, encontros_da_semana, proximo_encontro_em,
        atas_pendentes, atas_atrasadas, pendencias_abertas, pendencias_vencidas,
        remuneracao_modelo, remuneracao_percentual, remuneracao_mes_referencia
-from valor.vw_painel_conselheiro;
+from valor.vw_painel_conselheiro where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
 
 select set_config('app.usuario_id', 'bbbbbbbb-0000-4000-8000-000000000011', true) as ignorado;
 select set_config('app.perfil',     'lider', true) as ignorado;
@@ -787,19 +788,20 @@ select set_config('app.perfil',     'lider', true) as ignorado;
 \echo 'Painel do dono, o número da casa:'
 select pipeline_declarado, pipeline_auditado, valor_travado, percentual_valor_auditado,
        forecast_compromisso, forecast_possivel, forecast_aberto, forecast_fora
-from valor.vw_painel_dono;
+from valor.vw_painel_dono where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
 
 select percentual_nos_dois_maiores, concentracao_em_alarme,
        meta_do_periodo, cobertura_necessaria, cobertura_atual, cobertura_situacao,
        faturamento_bruto, margem, margem_percentual,
        contratos_vigentes, receita_mensal_contratada, alertas_vermelhos, alertas_amarelos
-from valor.vw_painel_dono;
+from valor.vw_painel_dono where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
 
 \echo ''
 \echo 'Alertas abertos, por criticidade, com quem precisa agir:'
 select criticidade_rotulo, regra_nome, mensagem, dias_aberto,
        quem_age_nome, quem_age_perfil, conta_nome, negocio_titulo
 from valor.vw_alertas_abertos
+where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001'
 order by ordem_criticidade, dias_aberto desc;
 
 \echo ''
@@ -807,6 +809,7 @@ order by ordem_criticidade, dias_aberto desc;
 select usuario_nome, titulo, estado, prazo, agendada_para, data_referencia,
        situacao_rotulo, dias_de_atraso, conta_nome
 from valor.vw_atividades_pendentes
+where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001'
 order by ordem, data_referencia nulls last;
 
 \echo ''
@@ -815,12 +818,13 @@ select numero, conta_nome, situacao, vigencia_fim, dias_para_vencer,
        sinal_de_vencimento, na_janela_de_renovacao, data_limite_aviso_previo,
        tem_negocio_de_renovacao, negocio_renovacao_titulo,
        parcelas_recebidas, valor_recebido
-from valor.vw_contratos_em_curso;
+from valor.vw_contratos_em_curso where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
 
 \echo ''
 \echo 'Agenda dos próximos sete dias:'
 select tipo_rotulo, titulo, quando_em, hora_inicio, dias_ate, turma_nome, conta_nome
 from valor.vw_agenda_da_semana
+where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001'
 order by quando_em, hora_inicio nulls last;
 
 \echo ''
@@ -829,12 +833,14 @@ select conta_nome, tier_rotulo, power_of_x, nps, contratos_vigentes,
        valor_mensal_vigente, dias_sem_contato, negocios_ativos, pipeline_da_conta,
        alertas_abertos, turmas_ativas, pendencias_vencidas
 from valor.vw_saude_da_conta
+where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001'
 order by conta_nome;
 
 \echo ''
 \echo 'Trabalho da casa separado do trabalho de cliente:'
 select escopo_rotulo, tipo, titulo, responsavel_nome, situacao, data_alvo, conta_nome
 from valor.vw_trabalho_da_casa
+where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001'
 order by escopo, tipo, titulo;
 
 do $$
@@ -848,23 +854,23 @@ begin
   perform set_config('app.usuario_id', 'bbbbbbbb-0000-4000-8000-000000000012', true);
   perform set_config('app.perfil',     'gerente_contas', true);
 
-  select count(*) into v_qtd from valor.vw_painel_gerente_contas;
+  select count(*) into v_qtd from valor.vw_painel_gerente_contas where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
   if v_qtd <> 6 then
     raise exception 'O gerente de contas cuida de 6 negócios nesta carteira. Vieram %.', v_qtd;
   end if;
-  select count(*) into v_qtd from valor.vw_painel_gerente_contas where grupo = 'decide_esta_semana';
+  select count(*) into v_qtd from valor.vw_painel_gerente_contas where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001' and grupo = 'decide_esta_semana';
   if v_qtd <> 3 then
     raise exception 'Esperava 3 negócios decidindo nesta semana. Vieram %.', v_qtd;
   end if;
-  select count(*) into v_qtd from valor.vw_painel_gerente_contas where grupo = 'parado';
+  select count(*) into v_qtd from valor.vw_painel_gerente_contas where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001' and grupo = 'parado';
   if v_qtd <> 1 then
     raise exception 'Esperava 1 negócio parado. Vieram %.', v_qtd;
   end if;
-  select count(*) into v_qtd from valor.vw_painel_gerente_contas where grupo = 'fora_da_higiene';
+  select count(*) into v_qtd from valor.vw_painel_gerente_contas where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001' and grupo = 'fora_da_higiene';
   if v_qtd <> 1 then
     raise exception 'Esperava 1 negócio fora da higiene. Vieram %.', v_qtd;
   end if;
-  select count(*) into v_qtd from valor.vw_painel_dono;
+  select count(*) into v_qtd from valor.vw_painel_dono where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
   if v_qtd <> 0 then
     raise exception 'O gerente de contas não vê o painel do dono, que carrega margem. Vieram % linhas.', v_qtd;
   end if;
@@ -873,7 +879,7 @@ begin
   perform set_config('app.usuario_id', 'bbbbbbbb-0000-4000-8000-000000000013', true);
   perform set_config('app.perfil',     'conselheiro', true);
 
-  select * into v_conselheiro from valor.vw_painel_conselheiro;
+  select * into v_conselheiro from valor.vw_painel_conselheiro where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
   if v_conselheiro.turma_id is null then
     raise exception 'O conselheiro precisa enxergar a turma dele.';
   end if;
@@ -892,7 +898,7 @@ begin
     raise exception 'Remuneração do conselheiro errada. Esperava 2000,00, que é 20 por cento de 10000,00, e veio %.',
       v_conselheiro.remuneracao_mes_referencia;
   end if;
-  select count(*) into v_qtd from valor.vw_painel_dono;
+  select count(*) into v_qtd from valor.vw_painel_dono where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
   if v_qtd <> 0 then
     raise exception 'O conselheiro não vê o painel do dono. Vieram % linhas.', v_qtd;
   end if;
@@ -901,7 +907,7 @@ begin
   perform set_config('app.usuario_id', 'bbbbbbbb-0000-4000-8000-000000000011', true);
   perform set_config('app.perfil',     'lider', true);
 
-  select * into v_d from valor.vw_painel_dono;
+  select * into v_d from valor.vw_painel_dono where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
   if v_d.pipeline_declarado <> 1050000.00 or v_d.pipeline_auditado <> 900000.00
      or v_d.valor_travado <> 150000.00 then
     raise exception 'Números do painel do dono errados: declarado %, auditado %, travado %.',
@@ -937,26 +943,27 @@ begin
   end if;
 
   -- Alertas, atividades, contratos, agenda, saúde da conta e trabalho da casa.
-  select count(*) into v_qtd from valor.vw_alertas_abertos;
+  select count(*) into v_qtd from valor.vw_alertas_abertos where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
   if v_qtd <> 2 then
     raise exception 'Esperava 2 alertas abertos. Vieram %.', v_qtd;
   end if;
   select count(*) into v_qtd from valor.vw_alertas_abertos
-   where criticidade = 'vermelho' and conta_nome = 'Conta Delta de Teste';
+   where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001'
+     and criticidade = 'vermelho' and conta_nome = 'Conta Delta de Teste';
   if v_qtd <> 1 then
     raise exception 'O alerta vermelho precisa chegar amarrado à Conta Delta de Teste. Vieram %.', v_qtd;
   end if;
 
-  select count(*) into v_qtd from valor.vw_atividades_pendentes;
+  select count(*) into v_qtd from valor.vw_atividades_pendentes where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
   if v_qtd <> 3 then
     raise exception 'Esperava 3 atividades pendentes. Vieram %.', v_qtd;
   end if;
-  select count(*) into v_qtd from valor.vw_atividades_pendentes where situacao = 'vencida' and ordem = 1;
+  select count(*) into v_qtd from valor.vw_atividades_pendentes where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001' and situacao = 'vencida' and ordem = 1;
   if v_qtd <> 1 then
     raise exception 'Esperava 1 atividade vencida na primeira posição da ordem. Vieram %.', v_qtd;
   end if;
 
-  select * into v_contrato from valor.vw_contratos_em_curso;
+  select * into v_contrato from valor.vw_contratos_em_curso where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
   if v_contrato.dias_para_vencer <> 45 then
     raise exception 'Dias para vencer errado. Esperava 45 e veio %.', v_contrato.dias_para_vencer;
   end if;
@@ -974,32 +981,33 @@ begin
       v_contrato.parcelas_recebidas, v_contrato.valor_recebido;
   end if;
 
-  select count(*) into v_qtd from valor.vw_agenda_da_semana;
+  select count(*) into v_qtd from valor.vw_agenda_da_semana where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
   if v_qtd <> 3 then
     raise exception 'Esperava 3 itens na agenda da semana, um de cada tipo. Vieram %.', v_qtd;
   end if;
-  select count(distinct tipo) into v_qtd from valor.vw_agenda_da_semana;
+  select count(distinct tipo) into v_qtd from valor.vw_agenda_da_semana where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
   if v_qtd <> 3 then
     raise exception 'A agenda precisa juntar encontro, reunião e compromisso. Vieram % tipos.', v_qtd;
   end if;
 
-  select count(*) into v_qtd from valor.vw_saude_da_conta;
+  select count(*) into v_qtd from valor.vw_saude_da_conta where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
   if v_qtd <> 4 then
     raise exception 'Esperava 4 contas na saúde da conta. Vieram %.', v_qtd;
   end if;
   select count(*) into v_qtd from valor.vw_saude_da_conta
-   where conta_nome = 'Conta Alfa de Teste'
+   where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001'
+     and conta_nome = 'Conta Alfa de Teste'
      and contratos_vigentes = 1 and dias_sem_contato = 2 and turmas_ativas = 1
      and pendencias_vencidas = 1;
   if v_qtd <> 1 then
     raise exception 'A linha da Conta Alfa de Teste não bateu na saúde da conta.';
   end if;
 
-  select count(*) into v_qtd from valor.vw_trabalho_da_casa where escopo = 'casa';
+  select count(*) into v_qtd from valor.vw_trabalho_da_casa where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001' and escopo = 'casa';
   if v_qtd <> 1 then
     raise exception 'Esperava 1 item de trabalho da própria casa. Vieram %.', v_qtd;
   end if;
-  select count(*) into v_qtd from valor.vw_trabalho_da_casa where escopo = 'cliente';
+  select count(*) into v_qtd from valor.vw_trabalho_da_casa where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001' and escopo = 'cliente';
   if v_qtd <> 3 then
     raise exception 'Esperava 3 itens de trabalho de cliente. Vieram %.', v_qtd;
   end if;
