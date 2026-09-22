@@ -1,0 +1,14 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Ambiente: nenhuma chave entra no repositório. Só o modelo `.env.exemplo` fica versionado.
+.env
+.env.*
+!.env.exemplo
+
+.DS_Store
+*.log
+npm-debug.log*
+.vite/
