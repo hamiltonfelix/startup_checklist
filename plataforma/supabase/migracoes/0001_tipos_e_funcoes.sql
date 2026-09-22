@@ -60,11 +60,15 @@ create type valor.canal_interacao as enum (
 -- Lê o contexto de duas fontes, na ordem: o parâmetro local app.<chave>,
 -- usado em teste e em carga; e a claim do token, usada no Supabase.
 -- O mesmo SQL roda nos dois lugares, sem ramificação.
+-- A ordem importa e nao e arbitraria. A claim do token vem primeiro, sempre.
+-- O parametro local so responde quando nao existe token, que e o caso do teste e
+-- da carga administrativa. Assim nenhum caminho de aplicacao consegue sobrepor o
+-- que o token afirma, nem por engano nem de proposito.
 create or replace function valor.claim(chave text)
 returns text language sql stable as $$
   select coalesce(
-    nullif(current_setting('app.' || chave, true), ''),
-    nullif(current_setting('request.jwt.claims', true)::jsonb ->> chave, '')
+    nullif(current_setting('request.jwt.claims', true)::jsonb ->> chave, ''),
+    nullif(current_setting('app.' || chave, true), '')
   );
 $$;
 
