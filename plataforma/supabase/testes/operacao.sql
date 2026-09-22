@@ -18,7 +18,9 @@
 \set ON_ERROR_STOP on
 \pset pager off
 \pset null '(nulo)'
-set client_min_messages = warning;
+-- O nível de mensagem fica em notice de propósito: é por notice que as
+-- tentativas barradas se mostram na saída.
+set client_min_messages = notice;
 
 begin;
 
@@ -374,6 +376,121 @@ select a.codigo, e.resultado, e.registros_afetados, e.mensagem, (e.erro is null)
   join valor.automacoes a on a.id = e.automacao_id
  where e.inquilino_id = '11111111-1111-4111-8111-111111111111'
  order by a.codigo;
+
+
+\echo ''
+\echo '====================================================================='
+\echo 'PROVA 7 · regra montada na tela em jsonb, e regra adiada por tabela ausente'
+\echo '====================================================================='
+
+insert into valor.regras_alerta
+  (inquilino_id, codigo, nome, descricao, entidade_alvo, tipo_condicao, condicao_jsonb,
+   criticidade, canal, destinatario_perfil, ordem)
+values ('11111111-1111-4111-8111-111111111111', 'conta_sem_tier_confirmado',
+        'Conta sem tier confirmado',
+        'Regra declarativa, montada na tela, sem uma linha de sql escrita à mão.',
+        'contas', 'jsonb',
+        $json$ {"tabela": "contas",
+                "chave": "id",
+                "mensagem": "Conta com tier ainda não confirmado por gente",
+                "criticidade": "amarelo",
+                "filtros": [{"coluna": "tier_confirmado_em", "operador": "nulo"},
+                            {"coluna": "arquivado_em",       "operador": "nulo"}]} $json$::jsonb,
+        'amarelo', 'painel', 'lider', 80);
+
+insert into valor.regras_alerta
+  (inquilino_id, codigo, nome, descricao, entidade_alvo, tipo_condicao, condicao_sql,
+   tabelas_requeridas, criticidade, ordem)
+values ('11111111-1111-4111-8111-111111111111', 'demonstracao_de_regra_adiada',
+        'Regra que depende de tabela futura',
+        'Existe só para provar que a rodada adia a regra em vez de quebrar.',
+        'historico_fases', 'sql',
+        $sql$ select h.inquilino_id, h.id as entidade_chave,
+                     'nunca avaliada'::text as mensagem,
+                     'verde'::valor.criticidade as criticidade,
+                     '{}'::jsonb as detalhe
+                from valor.historico_fases h
+               where ($1::uuid is null or h.inquilino_id = $1::uuid) $sql$,
+        array['valor.historico_fases'], 'verde', 90);
+
+\echo '--- o sql que o banco monta a partir da condição declarativa'
+select valor.montar_sql_condicao(condicao_jsonb) as sql_gerado
+  from valor.regras_alerta
+ where codigo = 'conta_sem_tier_confirmado'
+   and inquilino_id = '11111111-1111-4111-8111-111111111111';
+
+\echo '--- rodada 4: a declarativa dispara, a que depende de tabela ausente é adiada'
+select regra, criticidade, novos, ja_abertos, resolvidos, situacao
+  from valor.avaliar_alertas('11111111-1111-4111-8111-111111111111')
+ where regra in ('conta_sem_tier_confirmado', 'demonstracao_de_regra_adiada');
+
+select r.codigo as regra, a.criticidade, a.status, a.mensagem
+  from valor.alertas a
+  join valor.regras_alerta r on r.id = a.regra_id
+ where r.codigo = 'conta_sem_tier_confirmado'
+   and a.inquilino_id = '11111111-1111-4111-8111-111111111111';
+
+\echo ''
+\echo '====================================================================='
+\echo 'PROVA 8 · contrato vencendo e negócio de renovação aberto pela automação'
+\echo '====================================================================='
+
+insert into valor.contratos (
+  inquilino_id, conta_id, negocio_id, numero, titulo, modalidade, nivel, situacao,
+  assinado, assinado_em, vigencia_inicio, vigencia_fim, valor_total)
+values ('11111111-1111-4111-8111-111111111111',
+        '33333333-3333-4333-8333-333333333333',
+        '44444444-4444-4444-8444-444444444444',
+        'CT-FICCAO-001', 'Contrato Fictício Alfa', 'recorrente', 'n1', 'vigente',
+        true, current_date - 320, current_date - 320, current_date + 45, 300000.00);
+
+\echo '--- rodada 5: o aviso de contrato vencendo'
+select regra, criticidade, novos, ja_abertos, resolvidos, situacao
+  from valor.avaliar_alertas('11111111-1111-4111-8111-111111111111')
+ where regra = 'contrato_vencendo';
+
+select r.codigo as regra, a.criticidade, a.status, a.mensagem
+  from valor.alertas a
+  join valor.regras_alerta r on r.id = a.regra_id
+ where r.codigo = 'contrato_vencendo'
+   and a.inquilino_id = '11111111-1111-4111-8111-111111111111';
+
+\echo '--- a automação abre o negócio de renovação, a 90 dias do fim'
+select automacao, resultado, afetados, mensagem
+  from valor.executar_automacoes('11111111-1111-4111-8111-111111111111')
+ where automacao = 'criar_negocios_renovacao';
+
+select titulo, fase, origem, data_decisao_cliente
+  from valor.negocios
+ where inquilino_id = '11111111-1111-4111-8111-111111111111'
+   and fase = 7;
+
+
+\echo ''
+\echo '====================================================================='
+\echo 'PROVA 9 · o parceiro não roda a cobrança interna da casa'
+\echo '====================================================================='
+
+select set_config('app.perfil', 'parceiro', true);
+do $$
+begin
+  perform valor.avaliar_alertas('11111111-1111-4111-8111-111111111111');
+  raise exception 'FALHA: o parceiro rodou a avaliação de alertas.';
+exception
+  when insufficient_privilege then
+    raise notice 'barrado como esperado: %', sqlerrm;
+end;
+$$;
+do $$
+begin
+  perform valor.executar_automacoes('11111111-1111-4111-8111-111111111111');
+  raise exception 'FALHA: o parceiro rodou as automações.';
+exception
+  when insufficient_privilege then
+    raise notice 'barrado como esperado: %', sqlerrm;
+end;
+$$;
+select set_config('app.perfil', 'admin_master', true);
 
 reset role;
 rollback;

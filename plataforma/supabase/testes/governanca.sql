@@ -58,6 +58,44 @@ insert into valor.contatos (id, inquilino_id, conta_id, nome, cargo) values
 select valor.semear_modelos_ata('0e57e000-0000-4000-8000-000000000001') as modelos_de_ata_semeados;
 select valor.semear_banco_pautas('0e57e000-0000-4000-8000-000000000001') as temas_do_banco_semeados;
 
+-- O rito do conselho acontece dentro de uma turma, então a carga monta programa,
+-- turma e encontros de verdade, do BRM, e usa os identificadores reais. Desde a
+-- migração 0080 as chaves estrangeiras cobram isso, e é bom que cobrem.
+insert into valor.programas (
+  id, inquilino_id, conta_id, codigo, nome, ano, modalidade, status,
+  responsavel_id, data_inicio, data_fim, cadencia, encontros_previstos,
+  pauta_prioritaria_mensal, presenciais_por_mes)
+values ('0e57e000-0000-4000-8000-000000000021','0e57e000-0000-4000-8000-000000000001',
+        '0e57e000-0000-4000-8000-0000000000c1','PRG-TESTE-GOV','Conselho de Valor dedicado · teste',
+        2026,'dedicada','ativo','0e57e000-0000-4000-8000-0000000000a3',
+        date '2026-01-12', date '2026-12-11','semanal', 48, true, 1);
+
+insert into valor.turmas (
+  id, inquilino_id, programa_id, codigo, nome, cadeiras_minimas, cadeiras_maximas,
+  data_inicio, data_fim, status, cadencia, formato, dia_semana,
+  horario_inicio, horario_fim, encontros_previstos,
+  recesso_inicio, recesso_fim, facilitador_id, coordenador_id)
+values ('0e57e000-0000-4000-8000-0000000000e1','0e57e000-0000-4000-8000-000000000001',
+        '0e57e000-0000-4000-8000-000000000021','TRM-TESTE-GOV','Turma de teste de governanca',
+        1, 8, date '2026-01-12', date '2026-12-11','em_andamento','semanal','online', 2,
+        time '09:00', time '11:00', 48,
+        date '2026-12-15', date '2027-01-15',
+        '0e57e000-0000-4000-8000-0000000000a3','0e57e000-0000-4000-8000-0000000000a2');
+
+insert into valor.encontros (
+  id, inquilino_id, turma_id, numero, tema, data_prevista, data_realizada,
+  hora_prevista_inicio, hora_prevista_fim, formato, status,
+  conselheiro_id, assessor_id)
+values
+ ('0e57e000-0000-4000-8000-000000000031','0e57e000-0000-4000-8000-000000000001',
+  '0e57e000-0000-4000-8000-0000000000e1', 1,'Indicadores do periodo e caixa',
+  date '2026-09-08', date '2026-09-08', time '09:00', time '11:00','online','realizado',
+  '0e57e000-0000-4000-8000-0000000000a3','0e57e000-0000-4000-8000-0000000000a2'),
+ ('0e57e000-0000-4000-8000-000000000032','0e57e000-0000-4000-8000-000000000001',
+  '0e57e000-0000-4000-8000-0000000000e1', 2,'Pendencias e tabela de precos',
+  date '2026-09-22', null, time '09:00', time '11:00','online','previsto',
+  '0e57e000-0000-4000-8000-0000000000a3','0e57e000-0000-4000-8000-0000000000a2');
+
 -- ================================================================
 -- PARTE 1 · a pendência que reaparece
 -- ================================================================
@@ -71,17 +109,19 @@ select valor.semear_banco_pautas('0e57e000-0000-4000-8000-000000000001') as tema
 select set_config('app.usuario_id','0e57e000-0000-4000-8000-0000000000a2', true);
 select set_config('app.perfil','assessor', true);
 
-insert into valor.pautas (id, inquilino_id, conta_id, turma_id, numero, titulo, data_reuniao, status)
+insert into valor.pautas (id, inquilino_id, conta_id, turma_id, encontro_id, numero, titulo, data_reuniao, status)
 values ('0e57e000-0000-4000-8000-0000000000f1','0e57e000-0000-4000-8000-000000000001',
         '0e57e000-0000-4000-8000-0000000000c1','0e57e000-0000-4000-8000-0000000000e1',
+        '0e57e000-0000-4000-8000-000000000031',
         1,'Conselho de Valor · reuniao 1', date '2026-09-08','publicada');
 
 insert into valor.atas (
-  id, inquilino_id, conta_id, pauta_id, modelo_ata_id, turma_id, numero, titulo,
+  id, inquilino_id, conta_id, pauta_id, modelo_ata_id, turma_id, encontro_id, numero, titulo,
   data_reuniao, status, conteudo)
 select '0e57e000-0000-4000-8000-0000000000b1','0e57e000-0000-4000-8000-000000000001',
        '0e57e000-0000-4000-8000-0000000000c1','0e57e000-0000-4000-8000-0000000000f1',
-       m.id,'0e57e000-0000-4000-8000-0000000000e1', 1,'Ata da reuniao 1',
+       m.id,'0e57e000-0000-4000-8000-0000000000e1',
+       '0e57e000-0000-4000-8000-000000000031', 1,'Ata da reuniao 1',
        date '2026-09-08','rascunho',
        jsonb_build_object(
          'identificacao','Reuniao 1 do Conselho de Valor, em 08/09/2026',
@@ -96,16 +136,18 @@ where m.inquilino_id = '0e57e000-0000-4000-8000-000000000001' and m.padrao_da_ca
 
 -- Duas pendências nascem da mesma ata. Uma vai fechar, a outra vai continuar.
 insert into valor.pendencias (
-  id, inquilino_id, conta_id, turma_id, ata_id, ata_secao, origem,
+  id, inquilino_id, conta_id, turma_id, encontro_id, ata_id, ata_secao, origem,
   descricao, dono_usuario_id, dono_nome, prazo, status)
 values
  ('0e57e000-0000-4000-8000-000000000091','0e57e000-0000-4000-8000-000000000001',
   '0e57e000-0000-4000-8000-0000000000c1','0e57e000-0000-4000-8000-0000000000e1',
+  '0e57e000-0000-4000-8000-000000000031',
   '0e57e000-0000-4000-8000-0000000000b1','deliberacoes','deliberacao',
   'Revisar a tabela de precos da linha de servicos recorrentes',
   null,'Pessoa Socia Dois', date '2026-09-15','aberta'),
  ('0e57e000-0000-4000-8000-000000000092','0e57e000-0000-4000-8000-000000000001',
   '0e57e000-0000-4000-8000-0000000000c1','0e57e000-0000-4000-8000-0000000000e1',
+  '0e57e000-0000-4000-8000-000000000031',
   '0e57e000-0000-4000-8000-0000000000b1','proximos_passos','proximo_passo',
   'Fechar o painel de caixa com projecao de doze meses',
   '0e57e000-0000-4000-8000-0000000000a3', null, date '2026-09-12','aberta');
@@ -188,9 +230,10 @@ $$;
 select set_config('app.usuario_id','0e57e000-0000-4000-8000-0000000000a2', true);
 select set_config('app.perfil','assessor', true);
 
-insert into valor.pautas (id, inquilino_id, conta_id, turma_id, numero, titulo, data_reuniao, status)
+insert into valor.pautas (id, inquilino_id, conta_id, turma_id, encontro_id, numero, titulo, data_reuniao, status)
 values ('0e57e000-0000-4000-8000-0000000000f2','0e57e000-0000-4000-8000-000000000001',
         '0e57e000-0000-4000-8000-0000000000c1','0e57e000-0000-4000-8000-0000000000e1',
+        '0e57e000-0000-4000-8000-000000000032',
         2,'Conselho de Valor · reuniao 2', date '2026-09-22','rascunho');
 
 select i.ordem, i.tema, i.detalhe, i.responsavel_nome as dono,
@@ -224,15 +267,17 @@ $$;
 select set_config('app.usuario_id','0e57e000-0000-4000-8000-0000000000a1', true);
 select set_config('app.perfil','lider', true);
 
-insert into valor.pesquisas (id, inquilino_id, conta_id, tipo, titulo, periodo,
+insert into valor.pesquisas (id, inquilino_id, conta_id, turma_id, programa_id, tipo, titulo, periodo,
   periodo_inicio, periodo_fim, publico_alvo, status, abertura_em, fechamento_em)
 values
  ('0e57e000-0000-4000-8000-000000000071','0e57e000-0000-4000-8000-000000000001',
-  '0e57e000-0000-4000-8000-0000000000c1','nps_trimestral','NPS 2026 · segundo trimestre','2026-T2',
+  '0e57e000-0000-4000-8000-0000000000c1','0e57e000-0000-4000-8000-0000000000e1',
+  '0e57e000-0000-4000-8000-000000000021','nps_trimestral','NPS 2026 · segundo trimestre','2026-T2',
   date '2026-04-01', date '2026-06-30','Socios e diretores da conta','fechada',
   timestamptz '2026-06-20 09:00', timestamptz '2026-06-30 18:00'),
  ('0e57e000-0000-4000-8000-000000000072','0e57e000-0000-4000-8000-000000000001',
-  '0e57e000-0000-4000-8000-0000000000c1','nps_trimestral','NPS 2026 · terceiro trimestre','2026-T3',
+  '0e57e000-0000-4000-8000-0000000000c1','0e57e000-0000-4000-8000-0000000000e1',
+  '0e57e000-0000-4000-8000-000000000021','nps_trimestral','NPS 2026 · terceiro trimestre','2026-T3',
   date '2026-07-01', date '2026-09-30','Socios e diretores da conta','aberta',
   timestamptz '2026-09-15 09:00', null);
 

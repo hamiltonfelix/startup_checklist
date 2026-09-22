@@ -10,8 +10,10 @@ create schema if not exists valor;
 
 create type valor.perfil_usuario as enum (
   'admin_master', 'lider', 'comercial', 'gerente_contas',
-  'conselheiro', 'assessor', 'financeiro', 'parceiro', 'emergencia'
+  'conselheiro', 'assessor', 'financeiro', 'parceiro', 'participante', 'emergencia'
 );
+comment on type valor.perfil_usuario is
+  'O participante e a pessoa do cliente que ocupa cadeira numa turma. Ele alcanca a propria turma e somente o entregavel marcado como visivel ao cliente.';
 
 create type valor.papel_negocio as enum (
   'gerente_contas', 'conselheiro', 'pre_vendas',

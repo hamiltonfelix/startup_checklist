@@ -340,6 +340,13 @@ declare
   v_falta  text;
   v_tabela text;
 begin
+  -- Esta função roda como dona das tabelas, então ignora a segurança de linha.
+  -- O parceiro não passa daqui: a cobrança interna da casa não é dele.
+  if valor.eh_parceiro() then
+    raise exception 'O perfil parceiro não roda a cobrança interna da casa.'
+      using errcode = 'insufficient_privilege';
+  end if;
+
   for r in
     select * from valor.regras_alerta
      where ativa and arquivado_em is null
@@ -486,6 +493,13 @@ declare
   v_dias     integer := valor.configuracao_num(p_inquilino, 'alerta.contrato_renovacao_dias', 90)::integer;
   v_criados  integer := 0;
 begin
+  -- Esta função roda como dona das tabelas, então ignora a segurança de linha.
+  -- O parceiro não passa daqui: a cobrança interna da casa não é dele.
+  if valor.eh_parceiro() then
+    raise exception 'O perfil parceiro não roda a cobrança interna da casa.'
+      using errcode = 'insufficient_privilege';
+  end if;
+
   if to_regclass('valor.contratos') is null then
     return 0;
   end if;
@@ -533,6 +547,13 @@ declare
   v_tabela  text;
   v_erro    text;
 begin
+  -- Esta função roda como dona das tabelas, então ignora a segurança de linha.
+  -- O parceiro não passa daqui: a cobrança interna da casa não é dele.
+  if valor.eh_parceiro() then
+    raise exception 'O perfil parceiro não roda a cobrança interna da casa.'
+      using errcode = 'insufficient_privilege';
+  end if;
+
   for a in
     select * from valor.automacoes
      where ativa and arquivado_em is null

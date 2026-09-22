@@ -64,7 +64,7 @@ São as regras que viram cálculo no sistema. Cada uma tem a minha proposta de p
 
 | Nº | Pergunta | Padrão proposto |
 |---|---|---|
-| C1 | A comissão incide sobre o valor bruto da parcela ou sobre o líquido depois de impostos? | sobre o bruto da parcela |
+| C1 | A comissão incide sobre o valor bruto da parcela ou sobre o líquido depois de impostos? | **RESPONDIDO em 22/09: sobre o líquido.** Desconta o imposto, média de 15%, e a comissão de 10% incide sobre essa base. O padrão antigo desta linha dizia sobre o bruto e estava errado. Vale o que está em CATALOGO-E-REGRAS.md, seção 2 |
 | C2 | Apura no faturamento ou no recebimento? | no recebimento |
 | C3 | Por quanto tempo o parceiro recebe: pela vida do contrato, pelos primeiros 12 meses, pelos primeiros 24? | pela vida do contrato |
 | C4 | Na renovação, continua a mesma comissão? | sim, se o parceiro seguir ativo |

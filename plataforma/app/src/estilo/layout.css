@@ -266,6 +266,27 @@
   flex: none;
 }
 
+/* Conferência de perfil, compacta. Sai quando a autenticação entrar. */
+.cabecalho__perfil {
+  flex: none;
+  width: 184px;
+}
+
+.cabecalho__perfil .campo {
+  gap: 0;
+}
+
+.cabecalho__perfil .campo__rotulo {
+  font-size: var(--texto-micro);
+  letter-spacing: 0.1em;
+}
+
+.cabecalho__perfil .selecao__controle {
+  min-height: 28px;
+  padding: 0 var(--esp-6) 0 var(--esp-2);
+  font-size: var(--texto-pp);
+}
+
 .cabecalho__usuario {
   display: flex;
   align-items: center;
@@ -452,7 +473,8 @@
     gap: var(--esp-2);
   }
 
-  .cabecalho__identidade {
+  .cabecalho__identidade,
+  .cabecalho__perfil {
     display: none;
   }
 

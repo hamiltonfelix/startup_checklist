@@ -87,13 +87,14 @@ export function Cabecalho({ aoAbrirGaveta, aoRecolher, recolhida }: PropsCabecal
 
       <div className="cabecalho__direita">
         {/* Conferência de perfil. Sai quando a autenticação entrar. */}
-        <Selecao
-          rotulo="Ver como"
-          className="cabecalho__perfil"
-          value={sessao.perfil}
-          onChange={(evento) => trocarPerfil(evento.target.value as PerfilUsuario)}
-          opcoes={PERFIS.map((perfil) => ({ valor: perfil, rotulo: ROTULO_PERFIL[perfil] }))}
-        />
+        <div className="cabecalho__perfil">
+          <Selecao
+            rotulo="Ver como"
+            value={sessao.perfil}
+            onChange={(evento) => trocarPerfil(evento.target.value as PerfilUsuario)}
+            opcoes={PERFIS.map((perfil) => ({ valor: perfil, rotulo: ROTULO_PERFIL[perfil] }))}
+          />
+        </div>
 
         <button
           type="button"
