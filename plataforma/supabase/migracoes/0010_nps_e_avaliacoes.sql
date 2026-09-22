@@ -602,35 +602,35 @@ alter table valor.ciclos_avaliacao       enable row level security;
 -- O perfil participante, criado para a pessoa do cliente que ocupa cadeira,
 -- responde pesquisa mas não lê apuração. Ler a apuração seria ver a nota e a
 -- motivação escrita dos colegas de mesa, e no caso de turma compartilhada seria
--- ver a nota de empresas concorrentes. O predicado valor.gov_time_da_casa vem
+-- ver a nota de empresas concorrentes. O predicado valor.time_da_casa vem
 -- da migração 0009 e vale igual aqui.
 
 create policy pesquisa_le on valor.pesquisas for select
-  using (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy pesquisa_insere on valor.pesquisas for insert
-  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy pesquisa_atualiza on valor.pesquisas for update
-  using (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa())
-  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 
 create policy questao_le on valor.pesquisas_questoes for select
-  using (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy questao_insere on valor.pesquisas_questoes for insert
-  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy questao_atualiza on valor.pesquisas_questoes for update
-  using (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa())
-  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 
 -- A resposta do cliente é do time interno. O parceiro nunca lê, e o participante
 -- também não: a apuração não é dele. Mas ele grava a própria resposta, que é o
 -- ato de responder a pesquisa, e só a própria.
 create policy resposta_le on valor.respostas for select
-  using (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy resposta_insere on valor.respostas for insert
   with check (
     valor.do_inquilino(inquilino_id)
     and not valor.eh_parceiro()
-    and (valor.gov_time_da_casa() or usuario_id = valor.usuario_atual())
+    and (valor.time_da_casa() or usuario_id = valor.usuario_atual())
   );
 create policy resposta_atualiza on valor.respostas for update
   using (valor.do_inquilino(inquilino_id) and valor.ve_confidencial())
@@ -660,9 +660,9 @@ create policy avaliacao_conselheiro_atualiza on valor.avaliacoes_conselheiro for
   with check (valor.do_inquilino(inquilino_id) and valor.ve_confidencial());
 
 create policy ciclo_le on valor.ciclos_avaliacao for select
-  using (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy ciclo_insere on valor.ciclos_avaliacao for insert
-  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());
 create policy ciclo_atualiza on valor.ciclos_avaliacao for update
-  using (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa())
-  with check (valor.do_inquilino(inquilino_id) and valor.gov_time_da_casa());
+  using (valor.do_inquilino(inquilino_id) and valor.time_da_casa())
+  with check (valor.do_inquilino(inquilino_id) and valor.time_da_casa());

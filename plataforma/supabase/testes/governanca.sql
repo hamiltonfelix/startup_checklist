@@ -436,6 +436,184 @@ begin
 end;
 $$;
 
+
+-- ================================================================
+-- PARTE 3 · o perfil participante
+-- ================================================================
+
+\echo ''
+\echo '================================================================'
+\echo 'PARTE 3 · o que o participante le e o que nao le'
+\echo '================================================================'
+
+-- Uma ata restrita na turma do participante, para provar que ela nao chega nele.
+select set_config('app.usuario_id','0e57e000-0000-4000-8000-0000000000a2', true);
+select set_config('app.perfil','assessor', true);
+insert into valor.atas (
+  id, inquilino_id, conta_id, turma_id, encontro_id, numero, titulo,
+  data_reuniao, status, restrita, conteudo)
+values ('0e57e000-0000-4000-8000-0000000000b2','0e57e000-0000-4000-8000-000000000001',
+        '0e57e000-0000-4000-8000-0000000000c1','0e57e000-0000-4000-8000-0000000000e1',
+        '0e57e000-0000-4000-8000-000000000032', 9,'Ata restrita sobre pessoas do cliente',
+        date '2026-09-22','rascunho', true,'{"identificacao":"Sessao reservada"}'::jsonb);
+
+-- Uma pendencia nascida dessa ata restrita. Ela e da turma do participante, mas
+-- veio de reuniao sobre pessoas do cliente, entao nao pode chegar nele.
+insert into valor.pendencias (
+  id, inquilino_id, conta_id, turma_id, ata_id, ata_secao, origem,
+  descricao, dono_nome, prazo, status)
+values ('0e57e000-0000-4000-8000-000000000093','0e57e000-0000-4000-8000-000000000001',
+        '0e57e000-0000-4000-8000-0000000000c1','0e57e000-0000-4000-8000-0000000000e1',
+        '0e57e000-0000-4000-8000-0000000000b2','deliberacoes','deliberacao',
+        'Tratativa reservada sobre o quadro de lideranca','Pessoa Lider', date '2026-10-15','aberta');
+
+select set_config('app.usuario_id','0e57e000-0000-4000-8000-0000000000a5', true);
+select set_config('app.perfil','participante', true);
+
+\echo ''
+\echo 'As atas que o participante da turma 1 enxerga:'
+select numero, titulo, restrita, turma_id = '0e57e000-0000-4000-8000-0000000000e1' as eh_da_minha_turma
+from valor.atas order by numero;
+
+\echo ''
+\echo 'O que o participante enxerga em cada tabela do meu dominio:'
+select 'atas'                   as tabela, count(*) as linhas from valor.atas
+union all select 'pautas',                 count(*) from valor.pautas
+union all select 'pendencias',             count(*) from valor.pendencias
+union all select 'pautas_itens',           count(*) from valor.pautas_itens
+union all select 'banco_pautas',           count(*) from valor.banco_pautas
+union all select 'modelos_ata',            count(*) from valor.modelos_ata
+union all select 'modelos_ata_por_conta',  count(*) from valor.modelos_ata_por_conta
+union all select 'pesquisas',              count(*) from valor.pesquisas
+union all select 'pesquisas_questoes',     count(*) from valor.pesquisas_questoes
+union all select 'respostas',              count(*) from valor.respostas
+union all select 'avaliacoes_conselheiro', count(*) from valor.avaliacoes_conselheiro
+union all select 'ciclos_avaliacao',       count(*) from valor.ciclos_avaliacao
+union all select 'nps_por_conta',          count(*) from valor.nps_por_conta
+order by 1;
+
+do $$
+declare
+  minhas       integer;
+  alheias      integer;
+  restritas    integer;
+  interno      integer;
+  apuracao     integer;
+begin
+  -- 1 · le a ata nao restrita da propria turma
+  select count(*) into minhas from valor.atas
+  where turma_id = '0e57e000-0000-4000-8000-0000000000e1' and not restrita;
+  if minhas < 1 then
+    raise exception 'REPROVADO: o participante ficou cego na propria turma, leu % atas.', minhas;
+  end if;
+
+  -- 2 · nao le nada de turma alheia
+  select count(*) into alheias from valor.atas
+  where turma_id is distinct from '0e57e000-0000-4000-8000-0000000000e1';
+  if alheias <> 0 then
+    raise exception 'REPROVADO: o participante leu % atas de turma alheia, esperava 0.', alheias;
+  end if;
+
+  -- 3 · nao le a ata restrita nem da propria turma
+  select count(*) into restritas from valor.atas where restrita;
+  if restritas <> 0 then
+    raise exception 'REPROVADO: o participante leu % atas restritas, esperava 0.', restritas;
+  end if;
+
+  -- 4 · nao le a pendencia nascida de ata restrita, mesmo sendo da turma dele
+  if exists (select 1 from valor.pendencias
+             where ata_id = '0e57e000-0000-4000-8000-0000000000b2') then
+    raise exception 'REPROVADO: o participante leu pendencia nascida de ata restrita.';
+  end if;
+  if (select count(*) from valor.pendencias) <> 2 then
+    raise exception 'REPROVADO: o participante leu % pendencias, esperava as 2 da ata aberta.',
+      (select count(*) from valor.pendencias);
+  end if;
+
+  -- 5 · nao le material interno da casa
+  select (select count(*) from valor.banco_pautas)
+       + (select count(*) from valor.modelos_ata)
+       + (select count(*) from valor.modelos_ata_por_conta)
+       + (select count(*) from valor.pautas_itens)
+    into interno;
+  if interno <> 0 then
+    raise exception 'REPROVADO: o participante leu % linhas de material interno, esperava 0.', interno;
+  end if;
+
+  -- 6 · nao le apuracao de pesquisa nem avaliacao de pessoa
+  select (select count(*) from valor.respostas)
+       + (select count(*) from valor.pesquisas)
+       + (select count(*) from valor.pesquisas_questoes)
+       + (select count(*) from valor.avaliacoes_conselheiro)
+       + (select count(*) from valor.ciclos_avaliacao)
+       + (select count(*) from valor.nps_por_conta)
+    into apuracao;
+  if apuracao <> 0 then
+    raise exception 'REPROVADO: o participante leu % linhas de apuracao, esperava 0.', apuracao;
+  end if;
+
+  raise notice 'APROVADO · participante le % ata da propria turma, 0 de turma alheia, 0 restrita, 0 interna, 0 de apuracao.', minhas;
+end;
+$$;
+
+\echo ''
+\echo 'O participante tenta escrever no rito:'
+do $$
+begin
+  insert into valor.pendencias (inquilino_id, conta_id, turma_id, descricao, dono_nome)
+  values ('0e57e000-0000-4000-8000-000000000001','0e57e000-0000-4000-8000-0000000000c1',
+          '0e57e000-0000-4000-8000-0000000000e1','Tentativa do participante','Pessoa Cadeira da Turma');
+  raise exception 'REPROVADO: o participante gravou pendencia';
+exception
+  when insufficient_privilege or check_violation then
+    raise notice 'BLOQUEADO como esperado: %', sqlerrm;
+  when others then
+    if sqlerrm like '%row-level security%' then
+      raise notice 'BLOQUEADO como esperado: %', sqlerrm;
+    else
+      raise;
+    end if;
+end;
+$$;
+
+do $$
+begin
+  insert into valor.atas (inquilino_id, conta_id, turma_id, numero, data_reuniao, status, conteudo)
+  values ('0e57e000-0000-4000-8000-000000000001','0e57e000-0000-4000-8000-0000000000c1',
+          '0e57e000-0000-4000-8000-0000000000e1', 77, date '2026-09-22','rascunho','{}');
+  raise exception 'REPROVADO: o participante gravou ata';
+exception
+  when others then
+    if sqlerrm like '%row-level security%' then
+      raise notice 'BLOQUEADO como esperado: %', sqlerrm;
+    else
+      raise;
+    end if;
+end;
+$$;
+
+\echo ''
+\echo 'E o participante da turma alheia enxerga a turma dele, e so ela:'
+select set_config('app.usuario_id','0e57e000-0000-4000-8000-0000000000a6', true);
+select set_config('app.perfil','participante', true);
+select numero, titulo, turma_id = '0e57e000-0000-4000-8000-0000000000e2' as eh_da_minha_turma
+from valor.atas order by numero;
+
+do $$
+declare qtd integer; fora integer;
+begin
+  select count(*) into qtd  from valor.atas where turma_id = '0e57e000-0000-4000-8000-0000000000e2';
+  select count(*) into fora from valor.atas where turma_id is distinct from '0e57e000-0000-4000-8000-0000000000e2';
+  if qtd < 1 then
+    raise exception 'REPROVADO: o participante da turma alheia ficou cego, leu % atas.', qtd;
+  end if;
+  if fora <> 0 then
+    raise exception 'REPROVADO: o participante da turma alheia leu % atas de fora, esperava 0.', fora;
+  end if;
+  raise notice 'APROVADO · cada participante enxerga a propria turma e nenhuma outra.';
+end;
+$$;
+
 \echo ''
 \echo '================================================================'
 \echo 'Teste de regressao concluido. O rollback abaixo nao deixa dado no banco.'

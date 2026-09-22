@@ -162,6 +162,61 @@ for TAB in banco_pautas modelos_ata contratos parcelas comissoes margem_contrato
   fi
 done
 
+# ------------------------------------------------ 2c escrita, não só leitura
+titulo "2c · Nenhuma política de escrita deixa gente de fora entrar por omissão"
+
+# O buraco mais caro desta construção nasceu de politicas escritas com
+# `not valor.eh_parceiro()` sozinho. Quando o perfil `participante` entrou no
+# enum, toda uma dessas politicas passou a valer para ele sem ninguem decidir,
+# inclusive as de escrita: gente do cliente podia gravar ata e pendencia.
+# Contar linha lida nunca pegaria isso. Esta secao le o catalogo de politicas.
+
+FRACAS=$(sudo -u postgres psql -tAc "
+  select c.relname || '.' || p.polname
+  from pg_policy p
+  join pg_class c on c.oid = p.polrelid
+  join pg_namespace n on n.oid = c.relnamespace
+  where n.nspname = 'valor'
+    and p.polcmd in ('*', 'a', 'w')
+    and coalesce(pg_get_expr(p.polwithcheck, p.polrelid), pg_get_expr(p.polqual, p.polrelid), '') like '%eh_parceiro%'
+    and coalesce(pg_get_expr(p.polwithcheck, p.polrelid), pg_get_expr(p.polqual, p.polrelid), '') not like '%time_da_casa%'
+    and coalesce(pg_get_expr(p.polwithcheck, p.polrelid), pg_get_expr(p.polqual, p.polrelid), '') not like '%participante%'
+  order by 1" "$BANCO" 2>/dev/null)
+
+if [ -z "$FRACAS" ]; then ok "toda política de escrita nomeia quem pode, e não apenas quem não pode"
+else
+  QUANTAS=$(echo "$FRACAS" | wc -l)
+  falha "$QUANTAS políticas de escrita guardadas só por eh_parceiro, então um perfil novo entra por omissão:"
+  echo "$FRACAS" | head -12 | sed 's/^/           /'
+  [ "$QUANTAS" -gt 12 ] && echo "           e mais $((QUANTAS-12))"
+fi
+
+# Prova empírica, nas tabelas em que sabemos montar uma linha válida.
+tenta_gravar() {
+  local PERFIL="$1" TABELA="$2" COMANDO="$3"
+  local R
+  R=$(sudo -u postgres psql -tA -d "$BANCO" 2>&1 <<SQL
+set role valor_aplicacao;
+select set_config('app.inquilino_id','$INQ',false);
+select set_config('app.perfil','$PERFIL',false);
+select set_config('app.parceiro_id','$PARC_A',false);
+$COMANDO
+SQL
+)
+  if echo "$R" | grep -qi 'row-level security\|permission denied\|permissão negada'; then
+    ok "perfil $PERFIL não grava em $TABELA"
+  else
+    falha "perfil $PERFIL GRAVOU em $TABELA · $(echo "$R" | tail -1)"
+  fi
+}
+
+for PERFIL in parceiro participante; do
+  tenta_gravar "$PERFIL" "contas" \
+    "insert into valor.contas (inquilino_id, nome) values ('$INQ','Invasao');"
+  tenta_gravar "$PERFIL" "negocios" \
+    "insert into valor.negocios (inquilino_id, conta_id, titulo) values ('$INQ','c1111111-1111-1111-1111-111111111111','Invasao');"
+done
+
 # ------------------------------------------------ 3 ninguém apaga
 titulo "3 · Nada é apagado, apenas arquivado"
 

@@ -95,6 +95,20 @@ language sql stable as $$ select valor.perfil_atual() = 'parceiro' $$;
 create or replace function valor.eh_conselheiro() returns boolean
 language sql stable as $$ select valor.perfil_atual() = 'conselheiro' $$;
 
+create or replace function valor.eh_participante() returns boolean
+language sql stable as $$ select valor.perfil_atual() = 'participante' $$;
+
+-- Quem e da casa, e nao gente de fora sentada numa cadeira ou indicando negocio.
+-- Toda politica que existe para separar a casa do mundo externo usa esta funcao,
+-- e nunca `not valor.eh_parceiro()` sozinho. O motivo foi aprendido na pratica:
+-- quando o perfil `participante` entrou, toda politica escrita com `not
+-- eh_parceiro()` passou a valer para ele sem que ninguem tivesse decidido isso,
+-- inclusive as de escrita. Um perfil novo nao pode herdar permissao por omissao.
+create or replace function valor.time_da_casa() returns boolean
+language sql stable as $$
+  select valor.perfil_atual() not in ('parceiro', 'participante')
+$$;
+
 -- Predicado que toda política de linha usa como primeiro filtro.
 create or replace function valor.do_inquilino(alvo uuid) returns boolean
 language sql stable as $$ select alvo = valor.inquilino_atual() $$;
