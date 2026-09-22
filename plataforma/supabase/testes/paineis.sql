@@ -629,6 +629,88 @@ begin
 end $$;
 
 \echo ''
+\echo 'Com as quatro chaves da tela criadas vazias, como a semente do inquilino as cria:'
+
+insert into valor.configuracoes (inquilino_id, chave, valor, rotulo, grupo, editavel_por) values
+  ('bbbbbbbb-0000-4000-8000-000000000001', 'meta.anual_casa', 'null'::jsonb,
+   'Meta anual da casa', 'meta', 'lider'),
+  ('bbbbbbbb-0000-4000-8000-000000000001', 'meta.trimestral_casa', 'null'::jsonb,
+   'Meta trimestral da casa', 'meta', 'lider'),
+  ('bbbbbbbb-0000-4000-8000-000000000001', 'meta.anual_por_pessoa', '{}'::jsonb,
+   'Meta anual por pessoa', 'meta', 'lider'),
+  ('bbbbbbbb-0000-4000-8000-000000000001', 'meta.trimestral_por_pessoa', '{}'::jsonb,
+   'Meta trimestral por pessoa', 'meta', 'lider');
+
+select escopo, granularidade, periodo_codigo, meta_valor, situacao, motivo_indisponivel
+from valor.vw_cobertura
+where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
+
+do $$
+declare
+  v_qtd integer;
+  v_c   valor.vw_cobertura%rowtype;
+begin
+  select count(*) into v_qtd from valor.vw_cobertura
+   where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
+  if v_qtd <> 1 then
+    raise exception 'Chave de meta vazia não é meta. Esperava a mesma linha única e vieram %.', v_qtd;
+  end if;
+  select * into v_c from valor.vw_cobertura
+   where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001';
+  if v_c.situacao <> 'indisponivel' or v_c.meta_valor is not null then
+    raise exception 'Meta em jsonb null e objeto vazio precisam continuar valendo como ausência de meta. Vieram situação % e meta %.',
+      v_c.situacao, v_c.meta_valor;
+  end if;
+  raise notice 'TESTE 4 passou no meio: meta em jsonb null e meta por pessoa em objeto vazio continuam sendo indisponível, e nenhum número é inventado.';
+end $$;
+
+\echo ''
+\echo 'Preenchendo a chave da tela, que é o caminho de quem cadastra meta na interface:'
+
+update valor.configuracoes set valor = to_jsonb(3000000.00)
+ where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001' and chave = 'meta.anual_casa';
+update valor.configuracoes
+   set valor = jsonb_build_object('bbbbbbbb-0000-4000-8000-000000000012', 1200000.00)
+ where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001' and chave = 'meta.anual_por_pessoa';
+
+select escopo, usuario_nome, granularidade, periodo_codigo, meta_valor,
+       taxa_ganho, cobertura_necessaria, pipeline_necessario,
+       pipeline_disponivel, cobertura_atual, situacao
+from valor.vw_cobertura
+where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001'
+order by escopo, periodo_codigo;
+
+do $$
+declare
+  v_casa   valor.vw_cobertura%rowtype;
+  v_pessoa valor.vw_cobertura%rowtype;
+begin
+  select * into v_casa from valor.vw_cobertura
+   where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001'
+     and escopo = 'casa' and granularidade = 'anual'
+     and periodo_codigo = extract(year from current_date)::integer::text;
+  if v_casa.meta_valor <> 3000000.00 then
+    raise exception 'A meta da chave da tela precisa chegar na visão. Esperava 3000000,00 e veio %.', v_casa.meta_valor;
+  end if;
+  if v_casa.situacao = 'indisponivel' then
+    raise exception 'Com meta preenchida a cobertura deixa de ser indisponível.';
+  end if;
+
+  select * into v_pessoa from valor.vw_cobertura
+   where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001'
+     and escopo = 'pessoa' and granularidade = 'anual'
+     and usuario_id = 'bbbbbbbb-0000-4000-8000-000000000012';
+  if v_pessoa.meta_valor <> 1200000.00 then
+    raise exception 'A meta por pessoa precisa sair do objeto com o identificador na chave. Esperava 1200000,00 e veio %.', v_pessoa.meta_valor;
+  end if;
+  if v_pessoa.usuario_nome <> 'Pessoa Gerente de Contas' then
+    raise exception 'A meta por pessoa precisa vir com o nome de quem carrega a meta. Veio %.', v_pessoa.usuario_nome;
+  end if;
+
+  raise notice 'TESTE 4 passou na chave da tela: meta da casa 3000000,00 e meta por pessoa 1200000,00, cada uma com a cobertura calculada.';
+end $$;
+
+\echo ''
 \echo 'Cadastrando a meta anual da casa em 3000000,00:'
 select valor.gravar_meta('bbbbbbbb-0000-4000-8000-000000000001', 'anual',
                          extract(year from current_date)::integer::text, 3000000.00) as meta_do_ano_corrente;
@@ -649,6 +731,7 @@ declare
 begin
   select * into v_c from valor.vw_cobertura
    where inquilino_id = 'bbbbbbbb-0000-4000-8000-000000000001'
+     and escopo = 'casa' and usuario_id is null
      and periodo_codigo = extract(year from current_date + 5)::integer::text;
 
   if v_c.meta_valor <> 3000000.00 then

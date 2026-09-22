@@ -67,3 +67,23 @@ As **sete seções oficiais da ata** não estão nesta lista: essas estão exata
 **O que fazer.** Ler a chave direto e tratar `jsonb_typeof(valor) = 'null'` como indisponível. O painel mostra cobertura como indisponível, e não um número errado.
 
 **O motivo.** Um número errado numa tela de decisão é pior do que a ausência do número. Quem vê "indisponível" vai atrás. Quem vê um número falso decide em cima dele.
+
+---
+
+## 7. Meta tem duas formas de chave, e a mais precisa vence
+
+**O conflito.** O curador de catálogo criou quatro chaves de meta na semente, sem o período escrito no nome, para a tela editar. O engenheiro de painéis criou uma forma com o período escrito na chave, mais precisa, para guardar histórico de meta por ano e por trimestre.
+
+**A decisão.** As duas convivem. `valor.vw_cobertura` lê as duas e, quando existirem as duas para o mesmo período, **a chave com período escrito vence**, por ser a mais específica. Nenhuma das duas é lida com função de valor padrão, como manda a decisão 6.
+
+**O motivo.** A tela precisa de uma chave estável para editar a meta corrente sem inventar nome. O histórico precisa de uma chave por período para a meta do ano passado não sumir quando a do ano novo for gravada. Escolher só uma perderia ou a facilidade da tela ou a memória do histórico.
+
+---
+
+## 8. O painel do parceiro não engana com agregado
+
+**A decisão.** As visões que publicam número da casa, pipeline, higiene, cobertura, concentração, funil e saúde da conta, negam o perfil de parceiro em vez de filtrar por ele.
+
+**O motivo.** Se elas apenas filtrassem, o parceiro receberia um agregado calculado só com os negócios dele, **apresentado como o número da casa**. Não seria vazamento, seria mentira. O portal do parceiro tem a visão própria dele, com a carteira dele e a comissão dele, e é a única que ele enxerga.
+
+A mesma regra vale para a cobertura quando a amostra é pequena: com menos de cinco decisões, ou nenhum ganho, a visão devolve indisponível com o motivo escrito, em vez de publicar uma taxa de ganho tirada de duas ou três decisões.

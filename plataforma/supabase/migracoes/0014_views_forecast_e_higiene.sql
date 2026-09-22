@@ -343,10 +343,24 @@ comment on view valor.vw_forecast_por_categoria is
 -- denominador: o negócio que venceu sem o cliente decidir conta como negócio
 -- que não virou receita. Sem meta cadastrada, ou sem histórico suficiente para
 -- calcular a taxa, a visão devolve indisponível e nenhum número.
+--
+-- A meta é lida de duas formas, e em nenhuma delas com valor padrão. Ler meta
+-- com padrão inventaria uma meta que ninguém definiu, e um número errado numa
+-- tela de decisão é pior do que a ausência do número.
+--
+--   1. As quatro chaves da tela de configuração, que nascem vazias de propósito:
+--      meta.anual_casa e meta.trimestral_casa, escalares do período corrente, e
+--      meta.anual_por_pessoa e meta.trimestral_por_pessoa, objetos com o
+--      identificador do usuário na chave. Valor jsonb null ou objeto vazio não
+--      é meta, é ausência de meta.
+--   2. As chaves com período escrito, montadas por valor.chave_meta, para
+--      cadastrar meta de período que não é o corrente. Quando as duas existirem
+--      para o mesmo período, a de período escrito vence, por ser a mais precisa.
 create view valor.vw_cobertura
 with (security_invoker = true, security_barrier = true) as
-with metas as (
+with metas_com_periodo as (
   select
+    1                                                            as precedencia,
     c.inquilino_id,
     split_part(c.chave, '.', 2)                                  as escopo,
     split_part(c.chave, '.', 3)                                  as granularidade,
@@ -357,6 +371,44 @@ with metas as (
   from valor.configuracoes c
   where c.arquivado_em is null
     and c.chave ~ '^meta\.(casa|pessoa)\.(anual|trimestral)\.'
+),
+metas_da_tela as (
+  select 2, c.inquilino_id, 'casa', 'anual',
+         extract(year from current_date)::integer::text, null::uuid,
+         case when jsonb_typeof(c.valor) = 'number' then (c.valor #>> '{}')::numeric end
+    from valor.configuracoes c
+   where c.arquivado_em is null and c.chave = 'meta.anual_casa'
+  union all
+  select 2, c.inquilino_id, 'casa', 'trimestral',
+         valor.codigo_trimestre(current_date), null::uuid,
+         case when jsonb_typeof(c.valor) = 'number' then (c.valor #>> '{}')::numeric end
+    from valor.configuracoes c
+   where c.arquivado_em is null and c.chave = 'meta.trimestral_casa'
+  union all
+  select 2, c.inquilino_id, 'pessoa', 'anual',
+         extract(year from current_date)::integer::text,
+         substring(e.chave from
+           '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')::uuid,
+         case when jsonb_typeof(e.conteudo) = 'number' then (e.conteudo #>> '{}')::numeric end
+    from valor.configuracoes c
+    cross join lateral jsonb_each(c.valor) as e(chave, conteudo)
+   where c.arquivado_em is null and c.chave = 'meta.anual_por_pessoa'
+     and jsonb_typeof(c.valor) = 'object'
+  union all
+  select 2, c.inquilino_id, 'pessoa', 'trimestral',
+         valor.codigo_trimestre(current_date),
+         substring(e.chave from
+           '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')::uuid,
+         case when jsonb_typeof(e.conteudo) = 'number' then (e.conteudo #>> '{}')::numeric end
+    from valor.configuracoes c
+    cross join lateral jsonb_each(c.valor) as e(chave, conteudo)
+   where c.arquivado_em is null and c.chave = 'meta.trimestral_por_pessoa'
+     and jsonb_typeof(c.valor) = 'object'
+),
+metas as (
+  select * from metas_com_periodo
+  union all
+  select * from metas_da_tela
 ),
 metas_datadas as (
   select m.*,
@@ -370,7 +422,8 @@ metas_datadas as (
   from metas m
 ),
 janelas as (
-  select d.*,
+  select distinct on (d.inquilino_id, d.escopo, d.granularidade, d.periodo_codigo, d.usuario_id)
+    d.*,
     case d.granularidade
       when 'anual'      then (d.periodo_inicio + interval '1 year'   - interval '1 day')::date
       when 'trimestral' then (d.periodo_inicio + interval '3 months' - interval '1 day')::date
@@ -378,6 +431,7 @@ janelas as (
   from metas_datadas d
   where d.periodo_inicio is not null
     and d.meta_valor is not null
+  order by d.inquilino_id, d.escopo, d.granularidade, d.periodo_codigo, d.usuario_id, d.precedencia
 ),
 decisoes as (
   select n.inquilino_id,

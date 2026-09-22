@@ -617,6 +617,12 @@ language sql stable security definer set search_path = valor, public as $$
   );
 $$;
 
+-- A porta do programa abre a turma inteira para quem é da casa, porque quem
+-- responde pelo programa responde por todas as turmas dele. Para quem está do
+-- lado do cliente essa porta fica fechada: o participante entra pela cadeira, e
+-- só pela cadeira. Sem a cláusula de time da casa, quem senta numa turma
+-- alcançaria as turmas irmãs do mesmo programa, e num programa compartilhado
+-- isso é uma empresa lendo a turma de uma concorrente.
 create or replace function valor.brm_turma_visivel(alvo uuid) returns boolean
 language sql stable security definer set search_path = valor, public as $$
   select not valor.eh_parceiro() and exists (
@@ -625,7 +631,7 @@ language sql stable security definer set search_path = valor, public as $$
       and t.inquilino_id = valor.inquilino_atual()
       and ( valor.brm_eh_equipe_da_turma(t.id)
             or t.id in (select valor.brm_turmas_do_participante())
-            or valor.brm_programa_visivel(t.programa_id) )
+            or (valor.time_da_casa() and valor.brm_programa_visivel(t.programa_id)) )
   );
 $$;
 
