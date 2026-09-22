@@ -194,6 +194,7 @@ export interface TurmaNaLista extends Turma {
 
 export interface Participante {
   id: Uuid
+  inquilino_id: Uuid
   turma_id: Uuid
   conta_id: Uuid | null
   contato_id: Uuid | null

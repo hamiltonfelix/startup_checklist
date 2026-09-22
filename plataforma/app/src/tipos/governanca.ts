@@ -260,7 +260,6 @@ export interface Pesquisa extends DoInquilino, Carimbo {
   publico_alvo: string
   status: PesquisaStatus
   abertura_em: DataHora | null
-  encerrada_em: DataHora | null
   anonima: boolean
   observacao: string | null
 }

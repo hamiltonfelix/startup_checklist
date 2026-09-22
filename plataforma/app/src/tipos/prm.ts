@@ -37,7 +37,17 @@ export type IndicacaoStatus =
   | 'convertida'
   | 'expirada'
 
-/** Espelho de `valor.comissao_beneficiario`, na ordem do `create type` da 0006. */
+/**
+ * Espelho de `valor.comissao_beneficiario`, na ordem do `create type` da 0006.
+ *
+ * Os três valores são copiados do banco sem tradução, porque é assim que eles
+ * chegam na coluna `beneficiario_tipo`. Identificador de banco se escreve como
+ * o banco escreve, em snake_case sem acento, conforme a seção 2 do contrato
+ * técnico. O primeiro deles nomeia a pessoa da casa que fecha o negócio, e o
+ * rótulo de tela desse registro é Gerente de Contas, conforme a seção 3. A
+ * ponte entre o identificador e o rótulo é o dicionário `ROTULO_BENEFICIARIO`,
+ * no fim deste arquivo, e nenhuma tela mostra o identificador cru.
+ */
 export type ComissaoBeneficiario = 'vendedor_interno' | 'parceiro' | 'conselheiro'
 
 /** Espelho de `valor.comissao_status`. Cancelada não entra em nenhum total. */
@@ -410,6 +420,12 @@ export const ROTULO_STATUS_INDICACAO: Record<IndicacaoStatus, string> = {
   expirada: 'Proteção vencida',
 }
 
+/**
+ * A ponte entre o identificador do banco e o rótulo de tela.
+ *
+ * A chave é o valor do enum, escrita como o banco a escreve. O valor é o que a
+ * pessoa lê, no vocabulário obrigatório da seção 3 do contrato técnico.
+ */
 export const ROTULO_BENEFICIARIO: Record<ComissaoBeneficiario, string> = {
   vendedor_interno: 'Gerente de Contas',
   parceiro: 'Parceiro',
