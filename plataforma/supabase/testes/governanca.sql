@@ -43,7 +43,9 @@ insert into valor.usuarios (id, inquilino_id, email, nome, perfil) values
  ('0e57e000-0000-4000-8000-0000000000a0','0e57e000-0000-4000-8000-000000000001','admin@exemplo.invalido','Pessoa Administradora','admin_master'),
  ('0e57e000-0000-4000-8000-0000000000a1','0e57e000-0000-4000-8000-000000000001','lider@exemplo.invalido','Pessoa Lider','lider'),
  ('0e57e000-0000-4000-8000-0000000000a2','0e57e000-0000-4000-8000-000000000001','assessor@exemplo.invalido','Pessoa Assessor','assessor'),
- ('0e57e000-0000-4000-8000-0000000000a3','0e57e000-0000-4000-8000-000000000001','conselheiro@exemplo.invalido','Pessoa Conselheiro','conselheiro');
+ ('0e57e000-0000-4000-8000-0000000000a3','0e57e000-0000-4000-8000-000000000001','conselheiro@exemplo.invalido','Pessoa Conselheiro','conselheiro'),
+ ('0e57e000-0000-4000-8000-0000000000a5','0e57e000-0000-4000-8000-000000000001','cadeira1@exemplo.invalido','Pessoa Cadeira da Turma','participante'),
+ ('0e57e000-0000-4000-8000-0000000000a6','0e57e000-0000-4000-8000-000000000001','cadeira2@exemplo.invalido','Pessoa Cadeira de Outra Turma','participante');
 
 insert into valor.contas (id, inquilino_id, nome, eh_cliente, eh_prospecto) values
  ('0e57e000-0000-4000-8000-0000000000c1','0e57e000-0000-4000-8000-000000000001','Conta Ficticia Alfa', true, false);
@@ -95,6 +97,46 @@ values
   '0e57e000-0000-4000-8000-0000000000e1', 2,'Pendencias e tabela de precos',
   date '2026-09-22', null, time '09:00', time '11:00','online','previsto',
   '0e57e000-0000-4000-8000-0000000000a3','0e57e000-0000-4000-8000-0000000000a2');
+
+-- Uma segunda turma, de outra conta, para provar que o participante de uma
+-- turma nao alcanca a turma alheia. A conta Beta existe so para isso.
+insert into valor.contas (id, inquilino_id, nome, eh_cliente, eh_prospecto) values
+ ('0e57e000-0000-4000-8000-0000000000c2','0e57e000-0000-4000-8000-000000000001','Conta Ficticia Beta', true, false);
+
+insert into valor.programas (
+  id, inquilino_id, conta_id, codigo, nome, ano, modalidade, status,
+  responsavel_id, cadencia)
+values ('0e57e000-0000-4000-8000-000000000022','0e57e000-0000-4000-8000-000000000001',
+        '0e57e000-0000-4000-8000-0000000000c2','PRG-TESTE-GOV-2','Conselho de Valor dedicado · turma alheia',
+        2026,'dedicada','ativo','0e57e000-0000-4000-8000-0000000000a3','semanal');
+
+insert into valor.turmas (
+  id, inquilino_id, programa_id, codigo, nome, status, cadencia, formato,
+  facilitador_id, coordenador_id)
+values ('0e57e000-0000-4000-8000-0000000000e2','0e57e000-0000-4000-8000-000000000001',
+        '0e57e000-0000-4000-8000-000000000022','TRM-TESTE-GOV-2','Turma alheia de teste',
+        'em_andamento','semanal','online',
+        '0e57e000-0000-4000-8000-0000000000a3','0e57e000-0000-4000-8000-0000000000a2');
+
+-- Cada participante na sua cadeira, em turmas diferentes.
+insert into valor.participantes (
+  id, inquilino_id, turma_id, conta_id, contato_id, usuario_id, nome, papel, cadeira)
+values
+ ('0e57e000-0000-4000-8000-000000000041','0e57e000-0000-4000-8000-000000000001',
+  '0e57e000-0000-4000-8000-0000000000e1','0e57e000-0000-4000-8000-0000000000c1',
+  '0e57e000-0000-4000-8000-0000000000d1','0e57e000-0000-4000-8000-0000000000a5',
+  'Pessoa Cadeira da Turma','socio', 1),
+ ('0e57e000-0000-4000-8000-000000000042','0e57e000-0000-4000-8000-000000000001',
+  '0e57e000-0000-4000-8000-0000000000e2','0e57e000-0000-4000-8000-0000000000c2',
+  null,'0e57e000-0000-4000-8000-0000000000a6',
+  'Pessoa Cadeira de Outra Turma','socio', 1);
+
+-- Uma ata na turma alheia, para o participante da turma 1 nao poder ler.
+insert into valor.atas (
+  id, inquilino_id, conta_id, turma_id, numero, titulo, data_reuniao, status, conteudo)
+values ('0e57e000-0000-4000-8000-0000000000b9','0e57e000-0000-4000-8000-000000000001',
+        '0e57e000-0000-4000-8000-0000000000c2','0e57e000-0000-4000-8000-0000000000e2',
+        1,'Ata da turma alheia', date '2026-09-08','rascunho','{}'::jsonb);
 
 -- ================================================================
 -- PARTE 1 · a pendência que reaparece
