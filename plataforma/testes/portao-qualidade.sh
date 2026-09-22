@@ -4,6 +4,10 @@
 # Uso: bash plataforma/testes/portao-qualidade.sh
 set -uo pipefail
 
+# Nada do que a varredura textual olha inclui dependencia de terceiro,
+# resultado de compilacao ou historico do controle de versao.
+EXCLUI=(--exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.git --exclude-dir=.vite --exclude-dir=coverage)
+
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MIGRACOES="$RAIZ/supabase/migracoes"
 APP="$RAIZ/app"
@@ -17,11 +21,11 @@ falha()  { printf "  \033[31mREPROVOU\033[0m %s\n" "$1"; FALHAS=$((FALHAS+1)); }
 # --------------------------------------------------------------- 1 editorial
 titulo "1 · Regras editoriais"
 
-ACHADOS=$(grep -rlP '\x{2014}|\x{2013}' "$RAIZ" --include='*.sql' --include='*.ts' --include='*.tsx' --include='*.css' --include='*.md' --include='*.html' 2>/dev/null || true)
+ACHADOS=$(grep -rlP "${EXCLUI[@]}" '\x{2014}|\x{2013}' "$RAIZ" --include='*.sql' --include='*.ts' --include='*.tsx' --include='*.css' --include='*.md' --include='*.html' 2>/dev/null || true)
 if [ -z "$ACHADOS" ]; then ok "nenhum travessão nem meia-risca"
 else falha "travessão encontrado em:"; echo "$ACHADOS" | sed 's/^/           /'; fi
 
-ACHADOS=$(grep -rn 'Félix' "$RAIZ" --include='*.sql' --include='*.ts' --include='*.tsx' --include='*.css' --include='*.md' 2>/dev/null || true)
+ACHADOS=$(grep -rn "${EXCLUI[@]}" 'Félix' "$RAIZ" --include='*.sql' --include='*.ts' --include='*.tsx' --include='*.css' --include='*.md' 2>/dev/null || true)
 if [ -z "$ACHADOS" ]; then ok "Felix sempre sem acento"
 else falha "Felix com acento em:"; echo "$ACHADOS" | head -10 | sed 's/^/           /'; fi
 
@@ -32,7 +36,7 @@ PROIBIDAS=("Oportunidade" "Oportunidades" "Vendedor" "Proposta" "Fechamento" "Da
 for p in "${PROIBIDAS[@]}"; do
   # Procura só no que vira texto de tela. Comentário de SQL pode citar a palavra proibida
   # justamente para explicar que ela não deve ser usada.
-  ACHADOS=$(grep -rn "$p" "$APP/src" --include='*.tsx' --include='*.ts' 2>/dev/null | grep -v 'nunca\|Nunca\|jamais\|Jamais\|proibid' || true)
+  ACHADOS=$(grep -rn "${EXCLUI[@]}" "$p" "$APP/src" --include='*.tsx' --include='*.ts' 2>/dev/null | grep -v 'nunca\|Nunca\|jamais\|Jamais\|proibid' || true)
   if [ -z "$ACHADOS" ]; then ok "não usa a palavra $p"
   else falha "palavra proibida $p em:"; echo "$ACHADOS" | head -5 | sed 's/^/           /'; fi
 done
@@ -41,11 +45,11 @@ done
 titulo "3 · Nenhum segredo no repositório"
 
 PADROES='sk-ant-|eyJhbGciOi|SUPABASE_SERVICE_ROLE|BEGIN [A-Z ]*PRIVATE KEY|postgres://[^ ]*:[^ @]*@'
-ACHADOS=$(grep -rnE "$PADROES" "$RAIZ" --include='*.sql' --include='*.ts' --include='*.tsx' --include='*.md' --include='*.json' --include='*.env*' 2>/dev/null | grep -v 'exemplo\|CONTRATO-TECNICO\|portao-qualidade' || true)
+ACHADOS=$(grep -rnE "${EXCLUI[@]}" "$PADROES" "$RAIZ" --include='*.sql' --include='*.ts' --include='*.tsx' --include='*.md' --include='*.json' --include='*.env*' 2>/dev/null | grep -v 'exemplo\|CONTRATO-TECNICO\|portao-qualidade' || true)
 if [ -z "$ACHADOS" ]; then ok "nenhuma chave, token ou senha aparente"
 else falha "possível segredo em:"; echo "$ACHADOS" | head -5 | sed 's/^/           /'; fi
 
-ACHADOS=$(grep -rniE '\(?[0-9]{2}\)? ?9[0-9]{4}[- ]?[0-9]{4}' "$RAIZ" --include='*.sql' --include='*.ts' --include='*.tsx' 2>/dev/null || true)
+ACHADOS=$(grep -rniE "${EXCLUI[@]}" '\(?\+?55 ?\(?[0-9]{2}\)? ?9[0-9]{4}[- ]?[0-9]{4}' "$RAIZ" --include='*.sql' --include='*.ts' --include='*.tsx' 2>/dev/null || true)
 if [ -z "$ACHADOS" ]; then ok "nenhum telefone de verdade"
 else falha "telefone aparente em:"; echo "$ACHADOS" | head -5 | sed 's/^/           /'; fi
 
@@ -116,6 +120,14 @@ C=$(sudo -u postgres psql -tAc "select count(*) from pg_description d join pg_cl
 printf "  tabelas %s · views %s · políticas %s · funções %s · colunas confidenciais marcadas %s\n" "$T" "$V" "$P" "$F" "$C"
 
 sudo -u postgres dropdb --if-exists "$BANCO" 2>/dev/null
+
+# --------------------------------------------------------------- 7 segurança
+titulo "7 · Segurança de linha provada com papel sem privilégio"
+if bash "$RAIZ/testes/prova-de-seguranca.sh" >/tmp/prova_seg.txt 2>&1; then
+  ok "$(grep -c 'passou' /tmp/prova_seg.txt) provas de segurança passaram"
+else
+  falha "a prova de segurança reprovou:"; grep -i 'REPROVOU' /tmp/prova_seg.txt | head -6 | sed 's/^/           /'
+fi
 
 # --------------------------------------------------------------- veredito
 titulo "Veredito"

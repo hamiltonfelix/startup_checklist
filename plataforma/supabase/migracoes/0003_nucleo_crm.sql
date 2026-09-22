@@ -231,8 +231,11 @@ alter table valor.artefatos  enable row level security;
 alter table valor.interacoes enable row level security;
 
 -- O parceiro só alcança o negócio que ele indicou, e a conta desse negócio.
+-- Roda com os direitos do dono e com caminho de busca fixo. Sem isso, a
+-- politica de uma tabela que chama esta funcao entra em recursao infinita,
+-- porque a leitura interna dispara a propria politica outra vez.
 create or replace function valor.negocio_visivel(alvo uuid) returns boolean
-language sql stable as $$
+language sql stable security definer set search_path = valor, pg_catalog as $$
   select exists (
     select 1 from valor.negocios n
     where n.id = alvo
@@ -242,7 +245,7 @@ language sql stable as $$
 $$;
 
 create or replace function valor.conta_visivel(alvo uuid) returns boolean
-language sql stable as $$
+language sql stable security definer set search_path = valor, pg_catalog as $$
   select exists (
     select 1 from valor.contas c
     where c.id = alvo and c.inquilino_id = valor.inquilino_atual()
@@ -259,7 +262,13 @@ create policy oferta_escreve on valor.ofertas for all
   using (valor.do_inquilino(inquilino_id) and valor.eh_admin())
   with check (valor.do_inquilino(inquilino_id) and valor.eh_admin());
 
-create policy conta_le on valor.contas for select using (valor.conta_visivel(id));
+create policy conta_le on valor.contas for select
+  using (inquilino_id = valor.inquilino_atual()
+         and ( not valor.eh_parceiro()
+               or exists (select 1 from valor.negocios n
+                          where n.conta_id = contas.id
+                            and n.inquilino_id = valor.inquilino_atual()
+                            and n.parceiro_id = valor.parceiro_atual()) ));
 create policy conta_escreve on valor.contas for all
   using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
   with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
@@ -271,7 +280,9 @@ create policy contato_escreve on valor.contatos for all
   using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
   with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());
 
-create policy negocio_le on valor.negocios for select using (valor.negocio_visivel(id));
+create policy negocio_le on valor.negocios for select
+  using (inquilino_id = valor.inquilino_atual()
+         and ( not valor.eh_parceiro() or parceiro_id = valor.parceiro_atual() ));
 create policy negocio_escreve on valor.negocios for all
   using (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro())
   with check (valor.do_inquilino(inquilino_id) and not valor.eh_parceiro());

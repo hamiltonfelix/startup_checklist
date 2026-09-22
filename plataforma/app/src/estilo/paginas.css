@@ -1,0 +1,603 @@
+/* ============================================================================
+   Telas: Painel do pipeline e vitrine de Estilo.
+   ========================================================================== */
+
+/* ------------------------------------------------------------ grade geral */
+
+.secao + .secao {
+  margin-top: var(--esp-7);
+}
+
+.secao__topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  flex-wrap: wrap;
+  padding-bottom: var(--esp-2);
+  margin-bottom: var(--esp-4);
+  border-bottom: 1px solid var(--cor-linha);
+}
+
+.secao__titulo {
+  font-family: var(--fonte-titulo);
+  font-weight: var(--peso-forte);
+  font-size: var(--texto-g);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cor-marca);
+}
+
+.secao__nota {
+  font-size: var(--texto-pp);
+  color: var(--cor-texto-fraco);
+  max-width: var(--largura-leitura-max);
+}
+
+.grade {
+  display: grid;
+  gap: var(--esp-4);
+}
+
+.grade--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.grade--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.grade--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+  .grade--4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .grade--3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .grade--2,
+  .grade--3,
+  .grade--4 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ------------------------------------------------ as duas linhas do pipeline
+   Declarado e auditado, sempre lado a lado, nunca um sem o outro. */
+
+.pipeline-duplo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--esp-4);
+}
+
+@media (max-width: 860px) {
+  .pipeline-duplo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.linha-pipeline {
+  padding: var(--esp-5);
+}
+
+.linha-pipeline__rotulo {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  font-family: var(--fonte-titulo);
+  font-weight: var(--peso-medio);
+  font-size: var(--texto-micro);
+  letter-spacing: var(--espaco-letra-kicker);
+  text-transform: uppercase;
+  color: var(--cor-texto-fraco);
+}
+
+.linha-pipeline__valor {
+  margin-top: var(--esp-2);
+  font-family: var(--fonte-numero);
+  font-weight: var(--peso-forte);
+  font-size: var(--texto-3xg);
+  line-height: var(--altura-apertada);
+  font-variant-numeric: tabular-nums;
+  color: var(--cor-marca);
+}
+
+.linha-pipeline--auditado .linha-pipeline__valor {
+  color: var(--cor-realce-legivel);
+}
+
+.linha-pipeline__unidade {
+  font-size: var(--texto-m);
+  font-weight: var(--peso-medio);
+  color: var(--cor-texto-fraco);
+  margin-left: var(--esp-1);
+}
+
+.linha-pipeline__detalhe {
+  margin-top: var(--esp-1);
+  font-size: var(--texto-pp);
+  color: var(--cor-texto-fraco);
+}
+
+.linha-pipeline__barra {
+  margin-top: var(--esp-4);
+  height: 10px;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-superficie-suave);
+  overflow: hidden;
+}
+
+.linha-pipeline__preenchimento {
+  height: 100%;
+  border-radius: var(--raio-pilula);
+  background: var(--felix-vinho);
+}
+
+.linha-pipeline--auditado .linha-pipeline__preenchimento {
+  background: var(--felix-dourado);
+}
+
+.linha-pipeline__legenda {
+  margin-top: var(--esp-2);
+  font-size: var(--texto-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cor-texto-tenue);
+}
+
+/* --------------------------------------------------- forecast por artefato */
+
+.forecast {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--esp-4);
+}
+
+@media (max-width: 1100px) {
+  .forecast {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .forecast {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.forecast__caixa {
+  padding: var(--esp-4);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-linha);
+  border-top: 3px solid var(--cor-linha-forte);
+  border-radius: var(--raio-m);
+}
+
+.forecast__caixa--compromisso {
+  border-top-color: var(--cor-verde);
+}
+.forecast__caixa--possivel {
+  border-top-color: var(--felix-dourado);
+}
+.forecast__caixa--aberto {
+  border-top-color: var(--felix-vinho);
+}
+.forecast__caixa--fora {
+  border-top-color: var(--cor-texto-tenue);
+}
+
+.forecast__nome {
+  font-family: var(--fonte-titulo);
+  font-weight: var(--peso-forte);
+  font-size: var(--texto-p);
+  letter-spacing: var(--espaco-letra-rotulo);
+  text-transform: uppercase;
+  color: var(--cor-marca);
+}
+
+.forecast__valor {
+  margin-top: var(--esp-2);
+  font-family: var(--fonte-numero);
+  font-weight: var(--peso-forte);
+  font-size: var(--texto-xg);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--altura-apertada);
+  color: var(--cor-texto);
+}
+
+.forecast__quantos {
+  margin-top: var(--esp-1);
+  font-size: var(--texto-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cor-texto-fraco);
+}
+
+.forecast__criterio {
+  margin-top: var(--esp-3);
+  padding-top: var(--esp-3);
+  border-top: 1px dashed var(--cor-linha);
+  font-size: var(--texto-pp);
+  color: var(--cor-texto-fraco);
+}
+
+/* ------------------------------------------------ invariantes de higiene */
+
+.invariante {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  padding: var(--esp-4);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio-m);
+}
+
+.invariante__topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--esp-3);
+}
+
+.invariante__numero {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-marca-suave);
+  color: var(--cor-marca);
+  font-family: var(--fonte-numero);
+  font-weight: var(--peso-forte);
+  font-size: var(--texto-pp);
+  line-height: 1;
+}
+
+.invariante__nome {
+  font-family: var(--fonte-titulo);
+  font-weight: var(--peso-forte);
+  font-size: var(--texto-base);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cor-texto);
+  line-height: var(--altura-titulo);
+}
+
+.invariante__placar {
+  display: flex;
+  align-items: baseline;
+  gap: var(--esp-2);
+}
+
+.invariante__cumprem {
+  font-family: var(--fonte-numero);
+  font-weight: var(--peso-forte);
+  font-size: var(--texto-2xg);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.invariante--verde .invariante__cumprem {
+  color: var(--cor-verde);
+}
+.invariante--amarelo .invariante__cumprem {
+  color: var(--cor-amarelo);
+}
+.invariante--vermelho .invariante__cumprem {
+  color: var(--cor-vermelho);
+}
+
+.invariante__de {
+  font-size: var(--texto-pp);
+  color: var(--cor-texto-fraco);
+}
+
+.invariante__barra {
+  height: 6px;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-superficie-suave);
+  overflow: hidden;
+}
+
+.invariante__preenchimento {
+  height: 100%;
+  border-radius: var(--raio-pilula);
+}
+
+.invariante--verde .invariante__preenchimento {
+  background: var(--cor-verde);
+}
+.invariante--amarelo .invariante__preenchimento {
+  background: var(--cor-amarelo);
+}
+.invariante--vermelho .invariante__preenchimento {
+  background: var(--cor-vermelho);
+}
+
+.invariante__pendencia {
+  font-size: var(--texto-pp);
+  color: var(--cor-texto-fraco);
+}
+
+/* -------------------------------------------------------- fases do funil */
+
+.fases {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.fase {
+  display: grid;
+  grid-template-columns: 28px minmax(120px, 1.4fr) minmax(0, 3fr) auto;
+  align-items: center;
+  gap: var(--esp-3);
+  padding: var(--esp-2) var(--esp-3);
+  border-radius: var(--raio-m);
+}
+
+.fase:hover {
+  background: var(--cor-superficie-suave);
+}
+
+.fase__numero {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--raio-p);
+  background: var(--felix-vinho);
+  color: #ffffff;
+  font-family: var(--fonte-numero);
+  font-weight: var(--peso-forte);
+  font-size: var(--texto-micro);
+  line-height: 1;
+}
+
+.fase__nome {
+  font-family: var(--fonte-titulo);
+  font-weight: var(--peso-medio);
+  font-size: var(--texto-p);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cor-texto);
+}
+
+.fase__trilho {
+  height: 16px;
+  border-radius: var(--raio-p);
+  background: var(--cor-superficie-suave);
+  overflow: hidden;
+  position: relative;
+}
+
+.fase__declarado {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--cor-marca-suave);
+  border-right: 1px solid var(--cor-linha-forte);
+}
+
+.fase__auditado {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--felix-vinho);
+}
+
+.fase__valores {
+  font-size: var(--texto-pp);
+  color: var(--cor-texto-fraco);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fase__valores b {
+  color: var(--cor-texto);
+  font-weight: var(--peso-forte);
+}
+
+@media (max-width: 720px) {
+  .fase {
+    grid-template-columns: 28px minmax(0, 1fr);
+    grid-template-areas:
+      'numero nome'
+      'trilho trilho'
+      'valores valores';
+    row-gap: var(--esp-1);
+  }
+  .fase__numero {
+    grid-area: numero;
+  }
+  .fase__nome {
+    grid-area: nome;
+  }
+  .fase__trilho {
+    grid-area: trilho;
+  }
+  .fase__valores {
+    grid-area: valores;
+  }
+}
+
+/* --------------------------------------------------------- vitrine Estilo */
+
+.vitrine__amostras {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--esp-3);
+}
+
+.vitrine__bloco {
+  padding: var(--esp-4);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio-m);
+}
+
+.vitrine__bloco + .vitrine__bloco {
+  margin-top: var(--esp-4);
+}
+
+.vitrine__rotulo {
+  margin-bottom: var(--esp-3);
+  font-family: var(--fonte-titulo);
+  font-weight: var(--peso-medio);
+  font-size: var(--texto-micro);
+  letter-spacing: var(--espaco-letra-kicker);
+  text-transform: uppercase;
+  color: var(--cor-realce-legivel);
+}
+
+.paleta {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: var(--esp-3);
+}
+
+.paleta__ficha {
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio-m);
+  overflow: hidden;
+  background: var(--cor-superficie);
+}
+
+.paleta__amostra {
+  height: 68px;
+  border-bottom: 1px solid var(--cor-linha);
+}
+
+.paleta__dados {
+  padding: var(--esp-2) var(--esp-3);
+}
+
+.paleta__nome {
+  font-family: var(--fonte-titulo);
+  font-weight: var(--peso-forte);
+  font-size: var(--texto-pp);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cor-texto);
+}
+
+.paleta__valor {
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-micro);
+  color: var(--cor-texto-fraco);
+  text-transform: uppercase;
+}
+
+.paleta__uso {
+  margin-top: var(--esp-1);
+  font-size: var(--texto-micro);
+  color: var(--cor-texto-tenue);
+}
+
+.escala-tipo > * + * {
+  margin-top: var(--esp-3);
+}
+
+.escala-tipo__linha {
+  display: flex;
+  align-items: baseline;
+  gap: var(--esp-4);
+  flex-wrap: wrap;
+  padding-bottom: var(--esp-2);
+  border-bottom: 1px dashed var(--cor-linha);
+}
+
+.escala-tipo__ficha {
+  flex: none;
+  width: 130px;
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-micro);
+  color: var(--cor-texto-tenue);
+}
+
+.vitrine__formulario {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--esp-4);
+}
+
+@media (max-width: 720px) {
+  .vitrine__formulario {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.vitrine__pilha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.vitrine__medidas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.vitrine__medida {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+}
+
+.vitrine__medida-nome {
+  flex: none;
+  width: 92px;
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-micro);
+  color: var(--cor-texto-fraco);
+}
+
+.vitrine__medida-barra {
+  height: 14px;
+  border-radius: var(--raio-p);
+  background: var(--felix-vinho);
+}
+
+.vitrine__raios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-3);
+}
+
+.vitrine__raio {
+  width: 88px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  background: var(--cor-marca-suave);
+  border: 1px solid var(--cor-linha-forte);
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-micro);
+  color: var(--cor-marca);
+}
+
+.vitrine__sombras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-5);
+  padding: var(--esp-2) 0;
+}
+
+.vitrine__sombra {
+  width: 110px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-linha);
+  border-radius: var(--raio-m);
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-micro);
+  color: var(--cor-texto-fraco);
+}

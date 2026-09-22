@@ -1,0 +1,265 @@
+/* ============================================================================
+   Sistema de design da Felix Empresarial · Plataforma de Valor
+   Fonte da verdade das cores, da tipografia, do espaçamento, do raio e da sombra.
+   Nenhum componente inventa cor. Tudo sai daqui.
+   Referência: CONTRATO-TECNICO.md, seção 10.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* ---------------------------------------------------------- marca, cruas
+     Estes dez valores são a identidade. Não mudam com o tema.
+     Só os papéis semânticos abaixo mudam. */
+  --felix-vinho: #5e1e3a;
+  --felix-vinho-profundo: #490b2c;
+  --felix-dourado: #efb810;
+  --felix-dourado-claro: #f9db5c;
+  --felix-dourado-sobre-branco: #c2900a;
+  --felix-tinta: #1d1d1b;
+  --felix-cinza: #707070;
+  --felix-alarme-verde: #2e7d4f;
+  --felix-alarme-amarelo: #c58a00;
+  --felix-alarme-vermelho: #b3261e;
+
+  /* --------------------------------------------- apoios derivados da marca
+     Tons de vinho e de dourado diluídos, usados em fundo, linha e realce.
+     Nascem da paleta acima, não são cor nova. */
+  --felix-rosa: #f8f1f5;
+  --felix-rosa-forte: #f0e2ea;
+  --felix-linha-rosa: #e9dce3;
+  --felix-areia: #fdf6e0;
+  --felix-cinza-claro: #9a9a9a;
+
+  /* ------------------------------------------------------------ superfícies */
+  --cor-fundo: #ffffff;
+  --cor-fundo-recuado: #faf7f8;
+  --cor-superficie: #ffffff;
+  --cor-superficie-suave: var(--felix-rosa);
+  --cor-superficie-elevada: #ffffff;
+  --cor-sobreposicao: rgba(29, 29, 27, 0.52);
+
+  /* ------------------------------------------------------------------ texto */
+  --cor-texto: var(--felix-tinta);
+  --cor-texto-suave: #3a3a38;
+  --cor-texto-fraco: var(--felix-cinza);
+  --cor-texto-tenue: var(--felix-cinza-claro);
+  --cor-texto-sobre-vinho: #ffffff;
+  --cor-texto-sobre-dourado: var(--felix-tinta);
+
+  /* ------------------------------------------------------------------ marca */
+  --cor-marca: var(--felix-vinho);
+  --cor-marca-forte: var(--felix-vinho-profundo);
+  --cor-marca-suave: var(--felix-rosa);
+  --cor-realce: var(--felix-dourado);
+  --cor-realce-legivel: var(--felix-dourado-sobre-branco);
+  --cor-realce-suave: var(--felix-dourado-claro);
+
+  /* ------------------------------------------------------------------ linha */
+  --cor-linha: var(--felix-linha-rosa);
+  --cor-linha-forte: #d9c4cf;
+  --cor-linha-neutra: #e4e4e2;
+
+  /* ----------------------------------------------------------------- alarme
+     Verde, amarelo e vermelho na leitura de tela clara. */
+  --cor-verde: var(--felix-alarme-verde);
+  --cor-verde-fundo: #e8f3ec;
+  --cor-verde-linha: #bcdcc8;
+  --cor-amarelo: var(--felix-alarme-amarelo);
+  --cor-amarelo-fundo: #fdf3dd;
+  --cor-amarelo-linha: #eed9a6;
+  --cor-vermelho: var(--felix-alarme-vermelho);
+  --cor-vermelho-fundo: #fbeceb;
+  --cor-vermelho-linha: #efc4c1;
+
+  /* ------------------------------------------------------------- foco visível
+     Um anel só, igual em todo componente, sempre com contraste contra o fundo. */
+  --cor-foco: var(--felix-vinho);
+  --cor-foco-contraste: var(--felix-dourado);
+  --anel-foco: 0 0 0 2px var(--cor-fundo), 0 0 0 4px var(--cor-foco);
+
+  /* ------------------------------------------------------------- tipografia */
+  --fonte-titulo: 'Oswald', 'Arial Narrow', system-ui, sans-serif;
+  --fonte-texto: 'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fonte-numero: 'Oswald', system-ui, sans-serif;
+  --fonte-mono: ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
+
+  --peso-normal: 400;
+  --peso-medio: 500;
+  --peso-forte: 600;
+  --peso-pesado: 700;
+
+  /* Escala tipográfica. O passo é pequeno de propósito: tela de trabalho,
+     muita informação por metro quadrado, nada de título gigante. */
+  --texto-3xg: 2.5rem;
+  --texto-2xg: 1.875rem;
+  --texto-xg: 1.5rem;
+  --texto-g: 1.25rem;
+  --texto-m: 1.0625rem;
+  --texto-base: 0.9375rem;
+  --texto-p: 0.8125rem;
+  --texto-pp: 0.75rem;
+  --texto-micro: 0.6875rem;
+
+  --altura-apertada: 1.12;
+  --altura-titulo: 1.2;
+  --altura-base: 1.55;
+  --altura-solta: 1.7;
+
+  /* Rótulo em caixa alta com espaçamento largo: a assinatura da casa. */
+  --espaco-letra-rotulo: 0.14em;
+  --espaco-letra-titulo: 0.02em;
+  --espaco-letra-kicker: 0.22em;
+
+  /* -------------------------------------------------------------- espaçamento
+     Passo de 4px. Tudo no produto encaixa nesta régua. */
+  --esp-0: 0;
+  --esp-1: 0.25rem;
+  --esp-2: 0.5rem;
+  --esp-3: 0.75rem;
+  --esp-4: 1rem;
+  --esp-5: 1.25rem;
+  --esp-6: 1.5rem;
+  --esp-7: 2rem;
+  --esp-8: 2.5rem;
+  --esp-9: 3rem;
+  --esp-10: 4rem;
+
+  /* -------------------------------------------------------------------- raio */
+  --raio-0: 0;
+  --raio-p: 3px;
+  --raio-m: 6px;
+  --raio-g: 10px;
+  --raio-xg: 16px;
+  --raio-pilula: 999px;
+
+  /* ----------------------------------------------------------------- sombra */
+  --sombra-0: none;
+  --sombra-p: 0 1px 2px rgba(73, 11, 44, 0.06), 0 1px 1px rgba(29, 29, 27, 0.04);
+  --sombra-m: 0 2px 6px rgba(73, 11, 44, 0.08), 0 1px 2px rgba(29, 29, 27, 0.05);
+  --sombra-g: 0 8px 24px rgba(73, 11, 44, 0.12), 0 2px 6px rgba(29, 29, 27, 0.06);
+  --sombra-xg: 0 20px 48px rgba(73, 11, 44, 0.18), 0 4px 12px rgba(29, 29, 27, 0.08);
+
+  /* ------------------------------------------------------------------ medida */
+  --largura-barra-lateral: 264px;
+  --largura-barra-lateral-recolhida: 68px;
+  --altura-cabecalho: 60px;
+  --largura-conteudo-max: 1440px;
+  --largura-leitura-max: 68ch;
+
+  /* ------------------------------------------------------------------- tempo */
+  --tempo-rapido: 120ms;
+  --tempo-medio: 200ms;
+  --tempo-lento: 320ms;
+  --curva: cubic-bezier(0.2, 0, 0.2, 1);
+
+  /* ------------------------------------------------------------------ camada */
+  --camada-casca: 10;
+  --camada-barra: 20;
+  --camada-suspenso: 40;
+  --camada-sobreposicao: 60;
+  --camada-aviso: 80;
+}
+
+/* ============================================================================
+   Tema escuro. A identidade é a mesma: o vinho vira superfície, o dourado vira
+   o realce legível, o texto clareia. Nenhuma cor nova entra aqui.
+   ========================================================================== */
+:root[data-tema='escuro'] {
+  color-scheme: dark;
+
+  --cor-fundo: #17070f;
+  --cor-fundo-recuado: #120509;
+  --cor-superficie: #23101a;
+  --cor-superficie-suave: #2c1522;
+  --cor-superficie-elevada: #301829;
+  --cor-sobreposicao: rgba(12, 3, 7, 0.68);
+
+  --cor-texto: #f6eff2;
+  --cor-texto-suave: #e2d3da;
+  --cor-texto-fraco: #bda7b2;
+  --cor-texto-tenue: #977f8c;
+  --cor-texto-sobre-vinho: #ffffff;
+  --cor-texto-sobre-dourado: var(--felix-tinta);
+
+  /* No escuro, quem carrega a marca é o dourado. O vinho passa a ser chão. */
+  --cor-marca: var(--felix-dourado-claro);
+  --cor-marca-forte: var(--felix-dourado);
+  --cor-marca-suave: #35192a;
+  --cor-realce: var(--felix-dourado);
+  --cor-realce-legivel: var(--felix-dourado-claro);
+  --cor-realce-suave: #4a2436;
+
+  --cor-linha: #40202f;
+  --cor-linha-forte: #5a2e41;
+  --cor-linha-neutra: #3a2230;
+
+  /* Alarmes clareados para manter contraste sobre fundo vinho escuro. */
+  --cor-verde: #62c48c;
+  --cor-verde-fundo: #16301f;
+  --cor-verde-linha: #2c5c3c;
+  --cor-amarelo: #f3c03f;
+  --cor-amarelo-fundo: #33240a;
+  --cor-amarelo-linha: #6a4d12;
+  --cor-vermelho: #f08279;
+  --cor-vermelho-fundo: #3a1512;
+  --cor-vermelho-linha: #71281f;
+
+  --cor-foco: var(--felix-dourado);
+  --cor-foco-contraste: var(--felix-vinho-profundo);
+  --anel-foco: 0 0 0 2px var(--cor-fundo), 0 0 0 4px var(--cor-foco);
+
+  --sombra-p: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sombra-m: 0 2px 6px rgba(0, 0, 0, 0.45);
+  --sombra-g: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --sombra-xg: 0 20px 48px rgba(0, 0, 0, 0.6);
+}
+
+/* O tema também acompanha a preferência do sistema quando ninguém escolheu
+   nada na tela. O atributo `data-tema` sempre vence. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema='claro']) {
+    color-scheme: dark;
+
+    --cor-fundo: #17070f;
+    --cor-fundo-recuado: #120509;
+    --cor-superficie: #23101a;
+    --cor-superficie-suave: #2c1522;
+    --cor-superficie-elevada: #301829;
+    --cor-sobreposicao: rgba(12, 3, 7, 0.68);
+
+    --cor-texto: #f6eff2;
+    --cor-texto-suave: #e2d3da;
+    --cor-texto-fraco: #bda7b2;
+    --cor-texto-tenue: #977f8c;
+
+    --cor-marca: var(--felix-dourado-claro);
+    --cor-marca-forte: var(--felix-dourado);
+    --cor-marca-suave: #35192a;
+    --cor-realce: var(--felix-dourado);
+    --cor-realce-legivel: var(--felix-dourado-claro);
+    --cor-realce-suave: #4a2436;
+
+    --cor-linha: #40202f;
+    --cor-linha-forte: #5a2e41;
+    --cor-linha-neutra: #3a2230;
+
+    --cor-verde: #62c48c;
+    --cor-verde-fundo: #16301f;
+    --cor-verde-linha: #2c5c3c;
+    --cor-amarelo: #f3c03f;
+    --cor-amarelo-fundo: #33240a;
+    --cor-amarelo-linha: #6a4d12;
+    --cor-vermelho: #f08279;
+    --cor-vermelho-fundo: #3a1512;
+    --cor-vermelho-linha: #71281f;
+
+    --cor-foco: var(--felix-dourado);
+    --cor-foco-contraste: var(--felix-vinho-profundo);
+
+    --sombra-p: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --sombra-m: 0 2px 6px rgba(0, 0, 0, 0.45);
+    --sombra-g: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --sombra-xg: 0 20px 48px rgba(0, 0, 0, 0.6);
+  }
+}
